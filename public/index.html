@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StealthShop - Премиальная брендовая одежда</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">STEALTHSHOP</div>
+            <nav class="nav">
+                <a href="#collection">Коллекция</a>
+                <a href="#about">О нас</a>
+                <a href="#" id="contactSeller" class="contact-btn">Связаться с продавцом</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Премиальные бренды.<br>Доступные цены.</h1>
+            <p class="hero-subtitle">Аутентичные вещи от мировых брендов</p>
+            <a href="#collection" class="btn-primary">Смотреть коллекцию</a>
+        </div>
+    </section>
+
+    <!-- Collection Section -->
+    <section id="collection" class="collection">
+        <div class="container">
+            <h2 class="section-title">Новые поступления</h2>
+            
+            <div class="categories">
+                <button class="category-btn active" data-category="all">Всё</button>
+                <button class="category-btn" data-category="clothing">Одежда</button>
+                <button class="category-btn" data-category="shoes">Обувь</button>
+                <button class="category-btn" data-category="accessories">Аксессуары</button>
+            </div>
+
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-content">
+                <h2>О StealthShop</h2>
+                <p>Мы специализируемся на поставке оригинальной брендовой одежды, обуви и аксессуаров. Каждая вещь проходит проверку на подлинность.</p>
+                <p>Работаем напрямую с официальными дистрибьюторами и авторизованными магазинами.</p>
+                <div class="contact-info">
+                    <a href="#" id="contactSellerFooter" class="btn-primary">Связаться в Telegram</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>StealthShop</h3>
+                    <p>Премиальные бренды для вас</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <p>Telegram: <a href="#" id="contactSellerLink" class="telegram-link">@stealthshop</a></p>
+                    <p>Оплата по согласованию</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Гарантии</h4>
+                    <p>100% оригинал</p>
+                    <p>Проверка подлинности</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 StealthShop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-body">
+                <div class="modal-image">
+                    <img id="modalImage" src="" alt="">
+                </div>
+                <div class="modal-info">
+                    <h2 id="modalTitle"></h2>
+                    <p id="modalDescription"></p>
+                    <div class="modal-price" id="modalPrice"></div>
+                    
+                    <div class="size-selector">
+                        <label>Размер:</label>
+                        <div class="sizes" id="modalSizes"></div>
+                    </div>
+                    
+                    <button class="btn-buy" id="buyButton">Заказать</button>
+                    <button class="btn-contact" id="contactSellerProduct">Связаться с продавцом</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="order-content">
+                <h2>Оформление заказа</h2>
+                <p class="order-notice">Заполните форму, и мы свяжемся с вами в Telegram для согласования оплаты и доставки</p>
+                
+                <form id="orderForm">
+                    <div class="order-summary">
+                        <h3>Ваш заказ</h3>
+                        <div id="orderDetails"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ваше имя *</label>
+                        <input type="text" id="customerName" required placeholder="Как к вам обращаться">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ваш Telegram *</label>
+                        <input type="text" id="customerTelegram" required placeholder="@username или ссылка">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Телефон (опционально)</label>
+                        <input type="tel" id="customerPhone" placeholder="+375 XX XXX XX XX">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Комментарий</label>
+                        <textarea id="customerComment" rows="3" placeholder="Дополнительные пожелания"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Отправить заказ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content success-content">
+            <div class="success-icon">✓</div>
+            <h2>Заказ отправлен!</h2>
+            <p>Ваш заказ <strong id="orderNumber"></strong> успешно создан.</p>
+            <p>Сейчас вы будете перенаправлены в наш Telegram для согласования оплаты и доставки.</p>
+            <button class="btn-primary" id="goToTelegram">Перейти в Telegram</button>
+        </div>
+    </div>
+
+    <script src="products.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
