@@ -6,6 +6,8 @@
 const { TelegramClient } = require('telegram');
 const { StringSession } = require('telegram/sessions');
 const fs = require('fs');
+const https = require('https');
+const FormData = require('form-data');
 
 // ============================================
 // КОНФИГУРАЦИЯ ИЗ ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
@@ -28,6 +30,42 @@ const CONFIG = {
     // Путь к файлу products.js
     outputFile: './public/products.js'
 };
+
+// ============================================
+// ЗАГРУЗКА ФОТО НА TELEGRAPH
+// ============================================
+
+async function uploadToTelegraph(buffer) {
+    return new Promise((resolve, reject) => {
+        const form = new FormData();
+        form.append('file', buffer, { filename: 'photo.jpg' });
+        
+        const req = https.request({
+            hostname: 'telegra.ph',
+            path: '/upload',
+            method: 'POST',
+            headers: form.getHeaders()
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const result = JSON.parse(data);
+                    if (result && result[0] && result[0].src) {
+                        resolve('https://telegra.ph' + result[0].src);
+                    } else {
+                        reject(new Error('Telegraph upload failed'));
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+        
+        form.pipe(req);
+        req.on('error', reject);
+    });
+}
 
 // ============================================
 // ГЛАВНАЯ ФУНКЦИЯ ПАРСИНГА
@@ -76,7 +114,7 @@ async function parseChannel() {
             if (!message.message) continue;
             
             const text = message.message;
-            const product = parseProduct(text, message, productId);
+            const product = await parseProduct(text, message, productId, client);
             
             if (product === 'SOLD') {
                 skippedSold++;
@@ -86,7 +124,7 @@ async function parseChannel() {
             if (product) {
                 products.push(product);
                 productId++;
-                console.log(`✅ Товар ${productId - 1}: ${product.brand} ${product.name} - $${product.price}`);
+                console.log(`✅ Товар ${productId - 1}: ${product.brand} ${product.name} - ${product.priceDisplay || product.price}`);
             }
         }
         
@@ -120,7 +158,7 @@ async function parseChannel() {
 // ПАРСИНГ ОДНОГО ТОВАРА
 // ============================================
 
-function parseProduct(text, message, id) {
+async function parseProduct(text, message, id, client) {
     // ПРОВЕРКА НА ПРОДАННЫЙ ТОВАР
     const soldKeywords = [
         'продан', 'продано', 'sold', 'reserved', 'зарезервирован',
@@ -235,15 +273,24 @@ function parseProduct(text, message, id) {
     }
     
     // ЗАГРУЗКА ФОТО ИЗ TELEGRAM
-    let imageUrl = 'https://via.placeholder.com/500x500/000000/FFFFFF?text=' + encodeURIComponent(brand);
+    let imageUrl = 'https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=' + encodeURIComponent(brand);
     
-    if (message.media && message.media.photo) {
+    if (message.media && message.media.photo && client) {
         try {
-            // Telegram фото доступно по специальному URL
-            // Используем заглушку с названием бренда пока
-            imageUrl = `https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=${encodeURIComponent(brand + ' ' + name.substring(0, 20))}`;
+            console.log(`  📸 Скачивание фото из сообщения ${message.id}...`);
+            
+            // Скачиваем фото через Telegram Client
+            const buffer = await client.downloadMedia(message.media, { workers: 1 });
+            
+            if (buffer) {
+                // Загружаем на Telegraph
+                const telegraphUrl = await uploadToTelegraph(buffer);
+                imageUrl = telegraphUrl;
+                console.log(`  ☁️  Фото загружено: ${telegraphUrl}`);
+            }
+            
         } catch (e) {
-            console.log('Не удалось загрузить фото');
+            console.log(`  ⚠️  Не удалось загрузить фото: ${e.message}`);
         }
     }
     
