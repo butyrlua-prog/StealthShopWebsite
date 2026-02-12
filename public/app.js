@@ -54,7 +54,7 @@ function createProductCard(product) {
         <div class="product-info">
             <div class="product-brand">${product.brand}</div>
             <div class="product-name">${product.name}</div>
-            <div class="product-price">$${product.price}</div>
+            <div class="product-price">${product.priceDisplay || '$' + product.price}</div>
         </div>
     `;
     
@@ -69,7 +69,7 @@ function openProductModal(product) {
     document.getElementById('modalImage').src = product.image;
     document.getElementById('modalTitle').textContent = `${product.brand} ${product.name}`;
     document.getElementById('modalDescription').textContent = product.description;
-    document.getElementById('modalPrice').textContent = `$${product.price}`;
+    document.getElementById('modalPrice').textContent = product.priceDisplay || `$${product.price}`;
     
     // Load sizes
     const sizesContainer = document.getElementById('modalSizes');
@@ -181,7 +181,7 @@ function openOrderModal() {
     const orderDetails = `
         <p><strong>${currentProduct.brand} ${currentProduct.name}</strong></p>
         <p>Размер: <strong>${selectedSize}</strong></p>
-        <p>Цена: <strong>$${currentProduct.price}</strong></p>
+        <p>Цена: <strong>${currentProduct.priceDisplay || '$' + currentProduct.price}</strong></p>
     `;
     
     document.getElementById('orderDetails').innerHTML = orderDetails;
@@ -207,6 +207,7 @@ async function handleOrderSubmit(e) {
             brand: currentProduct.brand,
             name: currentProduct.name,
             price: currentProduct.price,
+            priceDisplay: currentProduct.priceDisplay,
             size: selectedSize
         },
         customer: {
@@ -261,7 +262,7 @@ async function sendTelegramNotification(orderData) {
 📦 <b>ТОВАР:</b>
 • ${orderData.product.brand} ${orderData.product.name}
 • Размер: ${orderData.product.size}
-• Цена: $${orderData.product.price}
+• Цена: ${orderData.product.priceDisplay || orderData.product.price}
 
 👤 <b>ПОКУПАТЕЛЬ:</b>
 • Имя: ${orderData.customer.name}
