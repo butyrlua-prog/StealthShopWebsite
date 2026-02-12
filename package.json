@@ -1,25 +1,32 @@
-name	"stealthshop-railway"
-version	"1.0.0"
-description	"StealthShop - автоматический магазин с парсингом Telegram канала"
-main	"server.js"
-scripts	
-start	"node server.js"
-parse	"node parse-channel.js"
-dev	"nodemon server.js"
-keywords	
-0	"ecommerce"
-1	"telegram"
-2	"parser"
-author	""
-license	"MIT"
-dependencies	
-express	"^4.18.2"
-telegram	"^2.25.15"
-input	"^1.0.1"
-node-cron	"^3.0.3"
-node-fetch	"^2.7.0"
-form-data	"^4.0.0"
-devDependencies	
-nodemon	"^3.0.1"
-engines	
-node	">=18.0.0"
+{
+  "name": "stealthshop-railway",
+  "version": "1.0.0",
+  "description": "StealthShop - автоматический магазин с парсингом Telegram канала",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "parse": "node parse-channel.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "telegram",
+    "parser"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "telegram": "^2.25.15",
+    "input": "^1.0.1",
+    "node-cron": "^3.0.3",
+    "node-fetch": "^2.7.0",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
