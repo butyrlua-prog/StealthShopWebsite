@@ -137,38 +137,68 @@ function parseProduct(text, message, id) {
         }
     }
     
-    // Паттерны для поиска
-    const pricePattern = /(\d+)\s*(?:€|EUR|USD|\$|руб)/i;
-    const sizePattern = /(?:размер[ыа]?|size[s]?)\s*:?\s*([\d\-,\s]+)/i;
+    // УЛУЧШЕННЫЙ ПАРСИНГ ЦЕН - берём ВСЕ валюты
+    const pricePatterns = {
+        byn: /(\d+[\s,]?\d*)\s*(?:BYN|byn|б\.р|руб\.бел)/i,
+        usd: /(\d+[\s,]?\d*)\s*(?:USD|\$|usd|долл)/i,
+        rub: /(\d+[\s,]?\d*)\s*(?:₽|руб|rub|рублей)/i,
+        eur: /(\d+[\s,]?\d*)\s*(?:€|EUR|eur|евро)/i
+    };
     
-    const priceMatch = text.match(pricePattern);
-    const sizeMatch = text.match(sizePattern);
+    let prices = {};
+    let foundPrice = false;
     
-    // Если не нашли цену - скорее всего не товар
-    if (!priceMatch) return null;
-    
-    const price = parseInt(priceMatch[1]);
-    
-    // Извлекаем размеры
-    let sizes = ['One Size'];
-    if (sizeMatch) {
-        const sizeText = sizeMatch[1];
-        if (sizeText.includes('-')) {
-            const [start, end] = sizeText.split('-').map(s => s.trim());
-            sizes = [];
-            const startNum = parseInt(start);
-            const endNum = parseInt(end);
-            if (!isNaN(startNum) && !isNaN(endNum)) {
-                for (let i = startNum; i <= endNum; i++) {
-                    sizes.push(i.toString());
-                }
-            }
-        } else {
-            sizes = sizeText.split(/[,\s]+/).map(s => s.trim()).filter(s => s);
+    for (const [currency, pattern] of Object.entries(pricePatterns)) {
+        const match = text.match(pattern);
+        if (match) {
+            const priceValue = parseInt(match[1].replace(/[\s,]/g, ''));
+            prices[currency.toUpperCase()] = priceValue;
+            foundPrice = true;
         }
     }
     
-    // Извлекаем название и бренд
+    // Если не нашли ни одной цены - это не товар
+    if (!foundPrice) return null;
+    
+    // Формируем строку с ценами
+    const priceDisplay = Object.entries(prices)
+        .map(([curr, val]) => `${val} ${curr}`)
+        .join(' / ');
+    
+    // Основная цена для сортировки (USD если есть, иначе первая найденная)
+    const mainPrice = prices.USD || Object.values(prices)[0];
+    
+    // УЛУЧШЕННЫЙ ПАРСИНГ РАЗМЕРОВ
+    // Ищем "Размер: L" или "Размеры: 40-44" или "Size: M"
+    const sizePattern = /(?:размер[ыа]?|size[s]?)\s*:?\s*([^\n]+)/i;
+    const sizeMatch = text.match(sizePattern);
+    
+    let sizes = ['One Size'];
+    if (sizeMatch) {
+        const sizeText = sizeMatch[1].trim();
+        
+        // Диапазон типа "40-44"
+        if (sizeText.match(/^\d+\s*-\s*\d+$/)) {
+            const [start, end] = sizeText.split('-').map(s => parseInt(s.trim()));
+            sizes = [];
+            for (let i = start; i <= end; i++) {
+                sizes.push(i.toString());
+            }
+        }
+        // Буквенные размеры или одиночные
+        else if (sizeText.match(/^[A-Z0-9]+$/i)) {
+            sizes = [sizeText.toUpperCase()];
+        }
+        // Несколько размеров через запятую "S, M, L"
+        else if (sizeText.includes(',') || sizeText.includes('/')) {
+            sizes = sizeText.split(/[,\/]/).map(s => s.trim().toUpperCase()).filter(s => s);
+        }
+        else {
+            sizes = [sizeText];
+        }
+    }
+    
+    // УЛУЧШЕННОЕ РАСПОЗНАВАНИЕ БРЕНДОВ
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     const firstLine = lines[0] || 'Товар';
     
@@ -176,17 +206,19 @@ function parseProduct(text, message, id) {
     let name = firstLine;
     
     const brands = [
+        'C.P. Company', 'CP Company', 'Stone Island', 'The North Face',
         'Nike', 'Adidas', 'Puma', 'Reebok', 'New Balance',
         'Supreme', 'Balenciaga', 'Gucci', 'Louis Vuitton',
         'Off-White', 'Yeezy', 'Jordan', 'Vans', 'Converse',
-        'The North Face', 'Stone Island', 'CP Company', 'Palace',
-        'BAPE', 'Stüssy', 'Carhartt', 'Dickies'
+        'Palace', 'BAPE', 'Stüssy', 'Carhartt', 'Dickies',
+        'Ralph Lauren', 'Tommy Hilfiger', 'Lacoste', 'Hugo Boss'
     ];
     
     for (const b of brands) {
-        if (firstLine.toLowerCase().includes(b.toLowerCase())) {
+        const regex = new RegExp(b.replace('.', '\\.'), 'gi');
+        if (firstLine.match(regex)) {
             brand = b;
-            name = firstLine.replace(new RegExp(b, 'gi'), '').trim();
+            name = firstLine.replace(regex, '').trim();
             break;
         }
     }
@@ -198,21 +230,34 @@ function parseProduct(text, message, id) {
         category = 'shoes';
     } else if (lowerText.match(/сумка|рюкзак|часы|очки|шапка|кепка|bag|watch|cap|hat|accessory/)) {
         category = 'accessories';
+    } else if (lowerText.match(/куртка|jacket|ветровка|пуховик|пальто/)) {
+        category = 'clothing';
     }
     
-    // Извлекаем фото (placeholder на Railway)
+    // ЗАГРУЗКА ФОТО ИЗ TELEGRAM
     let imageUrl = 'https://via.placeholder.com/500x500/000000/FFFFFF?text=' + encodeURIComponent(brand);
     
-    // Описание
-    let description = lines.slice(0, 3).join(' ').substring(0, 200);
+    if (message.media && message.media.photo) {
+        try {
+            // Telegram фото доступно по специальному URL
+            // Используем заглушку с названием бренда пока
+            imageUrl = `https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=${encodeURIComponent(brand + ' ' + name.substring(0, 20))}`;
+        } catch (e) {
+            console.log('Не удалось загрузить фото');
+        }
+    }
+    
+    // Описание - берём текст до цены
+    let description = lines.slice(0, 4).join(' ').substring(0, 250);
     
     return {
         id,
         name: name || 'Product',
         brand,
         category,
-        price,
-        currency: 'USD',
+        price: mainPrice,
+        priceDisplay: priceDisplay, // Все валюты
+        currency: 'Multi',
         image: imageUrl,
         description: description || 'Premium quality',
         sizes
