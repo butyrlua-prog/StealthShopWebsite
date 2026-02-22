@@ -457,21 +457,21 @@ body {
 
 /* Contact Button */
 .contact-btn {
-    background: #000 !important;
-    color: #fff !important;
+    background: #fff;
+    color: #000;
     padding: 10px 20px;
     border-radius: 4px;
     font-weight: 600;
     transition: all 0.3s;
     text-decoration: none;
     display: inline-block;
-    border: 2px solid #fff !important;
+    border: 2px solid #fff;
 }
 
 .contact-btn:hover {
-    background: #fff !important;
-    color: #000 !important;
-    border: 2px solid #fff !important;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
 }
 
 .btn-contact {
@@ -589,8 +589,9 @@ body {
     }
     
     .contact-btn {
-        padding: 8px 15px;
+        padding: 6px 12px;
         font-size: 11px;
+        letter-spacing: 0.3px;
     }
     
     .order-content {
