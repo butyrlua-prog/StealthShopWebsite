@@ -30,6 +30,70 @@ app.get('/api/products', (req, res) => {
     }
 });
 
+// API endpoint для отправки уведомлений о заказах
+app.post('/api/send-order', async (req, res) => {
+    try {
+        const orderData = req.body;
+        
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const chatId = process.env.TELEGRAM_CHAT_ID;
+        
+        if (!botToken || !chatId) {
+            console.error('Telegram bot credentials not configured');
+            return res.status(500).json({ error: 'Bot not configured' });
+        }
+        
+        const message = `
+🛍 <b>НОВЫЙ ЗАКАЗ!</b>
+
+━━━━━━━━━━━━━━━━━━━
+📋 <b>Номер заказа:</b> <code>${orderData.orderId}</code>
+
+📦 <b>ТОВАР:</b>
+• ${orderData.product.brand} ${orderData.product.name}
+• Размер: ${orderData.product.size}
+• Цена: ${orderData.product.priceDisplay || orderData.product.price}
+
+👤 <b>ПОКУПАТЕЛЬ:</b>
+• Имя: ${orderData.customer.name}
+• Telegram: ${orderData.customer.telegram}
+• Телефон: ${orderData.customer.phone}
+
+💬 <b>Комментарий:</b>
+${orderData.customer.comment || 'Нет'}
+
+⏰ <b>Время заказа:</b> ${orderData.timestamp}
+
+━━━━━━━━━━━━━━━━━━━
+✅ Покупатель будет перенаправлен в ваш Telegram
+        `;
+        
+        const fetch = require('node-fetch');
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+            res.json({ success: true });
+        } else {
+            console.error('Telegram API error:', result);
+            res.status(500).json({ error: 'Failed to send notification' });
+        }
+        
+    } catch (error) {
+        console.error('Order notification error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // API endpoint для получения конфигурации
 app.get('/api/config', (req, res) => {
     res.json({
