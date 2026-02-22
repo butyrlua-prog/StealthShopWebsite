@@ -30,6 +30,13 @@ app.get('/api/products', (req, res) => {
     }
 });
 
+// API endpoint для получения конфигурации
+app.get('/api/config', (req, res) => {
+    res.json({
+        sellerTelegram: process.env.SELLER_TELEGRAM || 'stealthshop'
+    });
+});
+
 // API endpoint для ручного обновления товаров
 app.post('/api/update-products', async (req, res) => {
     try {
