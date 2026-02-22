@@ -69,23 +69,48 @@ ${orderData.customer.comment || 'Нет'}
         `;
         
         const fetch = require('node-fetch');
-        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'HTML'
-            })
-        });
         
-        const result = await response.json();
-        
-        if (result.ok) {
-            res.json({ success: true });
+        // Если есть фото товара - отправляем с фото
+        if (orderData.product.image && !orderData.product.image.includes('placeholder')) {
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    photo: orderData.product.image,
+                    caption: message,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.ok) {
+                res.json({ success: true });
+            } else {
+                console.error('Telegram API error:', result);
+                res.status(500).json({ error: 'Failed to send notification' });
+            }
         } else {
-            console.error('Telegram API error:', result);
-            res.status(500).json({ error: 'Failed to send notification' });
+            // Если нет фото - отправляем просто текст
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.ok) {
+                res.json({ success: true });
+            } else {
+                console.error('Telegram API error:', result);
+                res.status(500).json({ error: 'Failed to send notification' });
+            }
         }
         
     } catch (error) {
@@ -137,8 +162,8 @@ app.get('/api/debug-config', (req, res) => {
 // ============================================
 
 if (process.env.ENABLE_AUTO_PARSE === 'true') {
-    // Запуск каждый час в :00
-    cron.schedule('0 * * * *', async () => {
+    // Запуск 1 раз в сутки в 3:00 ночи
+    cron.schedule('0 3 * * *', async () => {
         console.log('⏰ Запуск автоматического парсинга...');
         try {
             await parseChannel();
@@ -148,7 +173,7 @@ if (process.env.ENABLE_AUTO_PARSE === 'true') {
         }
     });
     
-    console.log('✅ Автообновление включено (каждый час)');
+    console.log('✅ Автообновление включено (каждый день в 3:00)');
 }
 
 // Запуск сервера
