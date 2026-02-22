@@ -122,6 +122,7 @@ async function parseChannel() {
         const products = [];
         let productId = 1;
         let skippedSold = 0;
+        let skippedOther = 0;
         
         for (const message of messages) {
             if (!message.message) continue;
@@ -131,6 +132,11 @@ async function parseChannel() {
             
             if (product === 'SOLD') {
                 skippedSold++;
+                continue;
+            }
+            
+            if (product === 'SKIP') {
+                skippedOther++;
                 continue;
             }
             
@@ -144,6 +150,9 @@ async function parseChannel() {
         console.log(`\n🎉 Найдено ${products.length} товаров!`);
         if (skippedSold > 0) {
             console.log(`⏭️  Пропущено ${skippedSold} проданных товаров`);
+        }
+        if (skippedOther > 0) {
+            console.log(`⏭️  Пропущено ${skippedOther} объявлений/розыгрышей`);
         }
         
         // Сохраняем в файл
@@ -203,12 +212,29 @@ async function parseProduct(text, message, id, client) {
         }
     }
     
+    // ПРОВЕРКА НА РОЗЫГРЫШИ И ОБЪЯВЛЕНИЯ
+    const skipKeywords = [
+        'розыгрыш', 'giveaway', 'конкурс', 'contest', 'раздача',
+        'сертификат', 'certificate', 'подарок', 'gift',
+        'участвуй', 'participate', 'инстаграм', 'instagram',
+        'внимание', 'attention', 'объявление', 'announcement',
+        'скидка до', 'sale up to', 'акция', 'promotion',
+        'открытие', 'opening', 'поступление', 'new arrival'
+    ];
+    
+    for (const keyword of skipKeywords) {
+        if (lowerText.includes(keyword)) {
+            console.log(`⏭️  Пропущен (объявление/розыгрыш): "${text.substring(0, 50)}..."`);
+            return 'SKIP';
+        }
+    }
+    
     // УЛУЧШЕННЫЙ ПАРСИНГ ЦЕН - берём ВСЕ валюты
     const pricePatterns = {
-        byn: /(\d+[\s,]?\d*)\s*(?:BYN|byn|б\.р|руб\.бел)/i,
-        usd: /(\d+[\s,]?\d*)\s*(?:USD|\$|usd|долл)/i,
-        rub: /(\d+[\s,]?\d*)\s*(?:₽|руб|rub|рублей)/i,
-        eur: /(\d+[\s,]?\d*)\s*(?:€|EUR|eur|евро)/i
+        byn: /(\d+[\s,.]?\d*)\s*(?:BYN|byn|б\.р|руб\.бел)/i,
+        usd: /(\d+[\s,.]?\d*)\s*(?:USD|\$|usd|долл)/i,
+        rub: /(\d+[\s,.]?\d*)\s*(?:₽|руб|rub|рублей)/i,
+        eur: /(\d+[\s,.]?\d*)\s*(?:€|EUR|eur|евро)/i
     };
     
     let prices = {};
@@ -217,7 +243,8 @@ async function parseProduct(text, message, id, client) {
     for (const [currency, pattern] of Object.entries(pricePatterns)) {
         const match = text.match(pattern);
         if (match) {
-            const priceValue = parseInt(match[1].replace(/[\s,]/g, ''));
+            // ВАЖНО: Убираем ВСЕ пробелы, запятые И точки внутри числа
+            const priceValue = parseInt(match[1].replace(/[\s,.]/g, ''));
             prices[currency.toUpperCase()] = priceValue;
             foundPrice = true;
         }
