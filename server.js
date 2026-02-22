@@ -8,6 +8,9 @@ const path = require('path');
 const cron = require('node-cron');
 const { parseChannel } = require('./parse-channel');
 
+// Инициализация бота для управления парсером
+require('./bot-commands');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -70,8 +73,14 @@ ${orderData.customer.comment || 'Нет'}
         
         const fetch = require('node-fetch');
         
-        // Если есть фото товара - отправляем с фото
-        if (orderData.product.image && !orderData.product.image.includes('placeholder')) {
+        // Если есть реальное фото товара (не placeholder) - отправляем с фото
+        const hasRealPhoto = orderData.product.image && 
+                             !orderData.product.image.includes('placeholder') &&
+                             (orderData.product.image.includes('ibb.co') || 
+                              orderData.product.image.includes('telegra.ph') ||
+                              orderData.product.image.startsWith('http'));
+        
+        if (hasRealPhoto) {
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
