@@ -1,17 +1,23 @@
 // ============================================
-// КОНФИГУРАЦИЯ - ЗАМЕНИТЕ НА СВОИ ДАННЫЕ!
+// КОНФИГУРАЦИЯ - ЗАГРУЖАЕТСЯ АВТОМАТИЧЕСКИ
 // ============================================
 
 const CONFIG = {
-    // Создайте бота через @BotFather в Telegram
-    telegramBotToken: 'YOUR_BOT_TOKEN_HERE',
-    
-    // Ваш Telegram ID (получите через @userinfobot)
-    telegramChatId: 'YOUR_CHAT_ID_HERE',
-    
-    // Ваш Telegram username (БЕЗ @)
-    sellerUsername: 'your_telegram_username'
+    telegramBotToken: '',  // Загружается с сервера
+    telegramChatId: '',    // Загружается с сервера
+    sellerUsername: 'stealthshop'  // Default, загружается с сервера
 };
+
+// Загрузка конфигурации с сервера
+async function loadConfig() {
+    try {
+        const response = await fetch('/api/config');
+        const serverConfig = await response.json();
+        CONFIG.sellerUsername = serverConfig.sellerTelegram || 'stealthshop';
+    } catch (error) {
+        console.error('Config load error:', error);
+    }
+}
 
 // ============================================
 // ОСНОВНОЙ КОД
@@ -21,7 +27,8 @@ let currentProduct = null;
 let selectedSize = null;
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadConfig();  // Загружаем конфиг первым делом
     loadProducts();
     initializeEventListeners();
 });
