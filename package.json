@@ -21,7 +21,8 @@
     "input": "^1.0.1",
     "node-cron": "^3.0.3",
     "node-fetch": "^2.7.0",
-    "form-data": "^4.0.0"
+    "form-data": "^4.0.0",
+    "node-telegram-bot-api": "^0.61.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
