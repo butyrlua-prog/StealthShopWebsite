@@ -23,6 +23,9 @@ const CONFIG = {
     channelUsername: process.env.CHANNEL_USERNAME || 'StealthShopEU',
     postsLimit: parseInt(process.env.POSTS_LIMIT || '50'),
     
+    // ImgBB API для загрузки фото
+    imgbbApiKey: process.env.IMGBB_API_KEY || '',
+    
     // Telegram бот для уведомлений
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
     telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
@@ -32,23 +35,27 @@ const CONFIG = {
 };
 
 // ============================================
-// ЗАГРУЗКА ФОТО НА TELEGRAPH
+// ЗАГРУЗКА ФОТО НА IMGBB
 // ============================================
 
-async function uploadToTelegraph(buffer) {
+async function uploadToImgBB(buffer) {
+    const apiKey = CONFIG.imgbbApiKey || process.env.IMGBB_API_KEY;
+    
+    if (!apiKey) {
+        throw new Error('IMGBB_API_KEY not configured');
+    }
+    
     return new Promise((resolve, reject) => {
         const FormData = require('form-data');
         const form = new FormData();
         
-        // Конвертируем Buffer в правильный формат для Telegraph
-        form.append('file', buffer, {
-            filename: 'photo.jpg',
-            contentType: 'image/jpeg'
-        });
+        // ImgBB требует base64
+        const base64Image = buffer.toString('base64');
+        form.append('image', base64Image);
         
         const req = https.request({
-            hostname: 'telegra.ph',
-            path: '/upload',
+            hostname: 'api.imgbb.com',
+            path: `/1/upload?key=${apiKey}`,
             method: 'POST',
             headers: form.getHeaders()
         }, (res) => {
@@ -57,13 +64,13 @@ async function uploadToTelegraph(buffer) {
             res.on('end', () => {
                 try {
                     const result = JSON.parse(data);
-                    if (result && result[0] && result[0].src) {
-                        resolve('https://telegra.ph' + result[0].src);
+                    if (result.success && result.data && result.data.url) {
+                        resolve(result.data.url);
                     } else {
-                        reject(new Error('Telegraph: ' + (result.error || 'Unknown error')));
+                        reject(new Error('ImgBB: ' + (result.error?.message || 'Upload failed')));
                     }
                 } catch (e) {
-                    reject(new Error('Telegraph parse error'));
+                    reject(new Error('ImgBB parse error: ' + e.message));
                 }
             });
         });
@@ -302,15 +309,37 @@ async function parseProduct(text, message, id, client) {
         category = 'clothing';
     }
     
-    // ЗАГЛУШКИ ДЛЯ ФОТО (временно, чтобы избежать TIMEOUT)
-    // Фото будут добавлены позже через другой способ
+    // ЗАГРУЗКА ФОТО ИЗ TELEGRAM НА IMGBB
     let imageUrl = `https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=${encodeURIComponent(brand)}`;
     
-    // Можно также использовать разные цвета для разных категорий
-    if (category === 'shoes') {
-        imageUrl = `https://via.placeholder.com/500x500/2a2a2a/FFFFFF?text=${encodeURIComponent(brand)}`;
-    } else if (category === 'accessories') {
-        imageUrl = `https://via.placeholder.com/500x500/3a3a3a/FFFFFF?text=${encodeURIComponent(brand)}`;
+    if (message.media && message.media.photo && client && CONFIG.imgbbApiKey) {
+        try {
+            console.log(`  📸 Скачивание фото из сообщения ${message.id}...`);
+            
+            // Скачиваем фото через Telegram Client
+            const buffer = await client.downloadMedia(message.media, { 
+                workers: 1,
+                progressCallback: null
+            });
+            
+            if (buffer && Buffer.isBuffer(buffer)) {
+                // Небольшая задержка чтобы не перегружать API
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Загружаем на ImgBB
+                const imgbbUrl = await uploadToImgBB(buffer);
+                imageUrl = imgbbUrl;
+                console.log(`  ☁️  Фото загружено на ImgBB: ${imgbbUrl}`);
+            } else {
+                console.log(`  ⚠️  Фото не скачалось (пустой буфер)`);
+            }
+            
+        } catch (e) {
+            console.log(`  ⚠️  Ошибка фото: ${e.message}`);
+            // Используем placeholder если фото не загрузилось
+        }
+    } else if (!CONFIG.imgbbApiKey) {
+        console.log(`  ⚠️  IMGBB_API_KEY не настроен - используем placeholder`);
     }
     
     // Описание - берём текст до цены
