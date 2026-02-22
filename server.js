@@ -118,6 +118,20 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Debug endpoint для проверки переменных окружения (только для отладки!)
+app.get('/api/debug-config', (req, res) => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    
+    res.json({
+        hasBotToken: !!botToken,
+        botTokenPreview: botToken ? botToken.substring(0, 10) + '...' : 'NOT SET',
+        hasChatId: !!chatId,
+        chatIdValue: chatId || 'NOT SET',
+        chatIdType: typeof chatId
+    });
+});
+
 // ============================================
 // CRON JOB - АВТООБНОВЛЕНИЕ КАЖДЫЙ ЧАС
 // ============================================
