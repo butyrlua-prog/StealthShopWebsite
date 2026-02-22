@@ -21,7 +21,7 @@ const CONFIG = {
     
     // Канал и настройки парсинга
     channelUsername: process.env.CHANNEL_USERNAME || 'StealthShopEU',
-    postsLimit: parseInt(process.env.POSTS_LIMIT || '50'),
+    postsLimit: parseInt(process.env.POSTS_LIMIT || '500'),  // Увеличен лимит до 500
     
     // ImgBB API для загрузки фото
     imgbbApiKey: process.env.IMGBB_API_KEY || '',
@@ -156,13 +156,28 @@ async function parseChannel() {
             await sendUpdateNotification(products.length, skippedSold);
         }
         
-        await client.disconnect();
+        // Правильное отключение клиента
+        console.log('🔌 Отключение от Telegram...');
+        try {
+            await client.disconnect();
+            await client.destroy();
+        } catch (e) {
+            console.log('Клиент уже отключен');
+        }
         
         return products;
         
     } catch (error) {
         console.error('❌ Ошибка парсинга:', error);
-        await client.disconnect();
+        
+        // Отключаем клиент даже при ошибке
+        try {
+            await client.disconnect();
+            await client.destroy();
+        } catch (e) {
+            // Игнорируем ошибки отключения
+        }
+        
         throw error;
     }
 }
@@ -249,36 +264,71 @@ async function parseProduct(text, message, id, client) {
         }
     }
     
-    // УЛУЧШЕННОЕ РАСПОЗНАВАНИЕ БРЕНДОВ
+    // ОГРОМНАЯ БАЗА БРЕНДОВ (100+ популярных мировых брендов)
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     const firstLine = lines[0] || 'Товар';
     
     let brand = 'Brand';
     let name = firstLine;
     
-    // Расширенный список брендов (по приоритету - сначала длинные названия!)
+    // МАКСИМАЛЬНАЯ база брендов - сначала длинные названия!
     const brands = [
-        // Премиум и дизайнерские
-        'COSTUME NATIONAL', 'BEVERLY HILLS POLO CLUB', 'The North Face', 'C.P. Company', 
-        'CP Company', 'Stone Island', 'Ralph Lauren', 'Tommy Hilfiger', 'Hugo Boss',
-        'Louis Vuitton', 'Balenciaga', 'Off-White',
+        // Премиум дизайнерские (длинные названия первыми!)
+        'COSTUME NATIONAL', 'BEVERLY HILLS POLO CLUB', 'Vivienne Westwood', 
+        'Alexander McQueen', 'Dolce & Gabbana', 'Brunello Cucinelli',
         
-        // Спортивные
-        'U.S. POLO ASSN.', 'U.S. POLO', 'New Balance', 'Reebok', 'Nike', 'Adidas', 
-        'Puma', 'Jordan', 'Yeezy', 'Converse', 'Vans', 'Asics', 'Saucony',
+        // Премиум и дизайнерские
+        'The North Face', 'C.P. Company', 'CP Company', 'Stone Island', 
+        'Ralph Lauren', 'Tommy Hilfiger', 'Hugo Boss', 'Polo Ralph Lauren',
+        'Louis Vuitton', 'Balenciaga', 'Off-White', 'Bottega Veneta',
+        'Maison Margiela', 'Acne Studios', 'AMI Paris', 'Moncler',
+        'Burberry', 'Givenchy', 'Valentino', 'Versace', 'Armani',
+        'Giorgio Armani', 'Emporio Armani', 'Prada', 'Fendi', 'Dior',
+        'Saint Laurent', 'YSL', 'Celine', 'Gucci', 'Hermès',
+        
+        // Спортивные бренды
+        'U.S. POLO ASSN.', 'U.S. POLO', 'New Balance', 'Reebok', 'Asics',
+        'Nike', 'Adidas', 'Puma', 'Jordan', 'Air Jordan', 'Yeezy', 
+        'Converse', 'Vans', 'Saucony', 'Brooks', 'Mizuno', 'Under Armour',
+        'Salomon', 'Arc\'teryx', 'Hoka One One', 'On Running',
         
         // Streetwear
-        'Supreme', 'Palace', 'BAPE', 'Stüssy', 'Carhartt', 'Dickies',
+        'Supreme', 'Palace', 'BAPE', 'A Bathing Ape', 'Stüssy', 'Stussy',
+        'Carhartt WIP', 'Carhartt', 'Dickies', 'Obey', 'HUF', 'Primitive',
+        'Anti Social Social Club', 'ASSC', 'Brain Dead', 'Pleasures',
         
-        // Другие
-        'Gucci', 'Lacoste', 'Champion', 'Fila', 'Kappa', 'Ellesse',
-        'Napapijri', 'Patagonia', 'Columbia', 'Helly Hansen', 'Timberland'
+        // Спортивные бренды средний сегмент
+        'Champion', 'Fila', 'Kappa', 'Ellesse', 'Umbro', 'Lotto',
+        'Diadora', 'Le Coq Sportif', 'Sergio Tacchini',
+        
+        // Outdoor/спорт
+        'Napapijri', 'Patagonia', 'Columbia', 'Helly Hansen', 'Timberland',
+        'The Northface', 'Fjällräven', 'Mammut', 'Black Diamond',
+        
+        // Casual/lifestyle
+        'Lacoste', 'Fred Perry', 'Paul Smith', 'Ted Baker', 'COS',
+        'Uniqlo', 'Massimo Dutti', 'Zara', 'H&M', 'GAP', 'Levi\'s',
+        'Wrangler', 'Lee', 'Calvin Klein', 'Diesel', 'G-Star RAW',
+        
+        // Скейт/уличные бренды
+        'Thrasher', 'Santa Cruz', 'Independent', 'Spitfire', 'Baker',
+        'Girl', 'Chocolate', 'Element', 'Volcom', 'DC', 'Etnies',
+        'DVS', 'Emerica', 'Globe',
+        
+        // Workwear
+        'Dickies', 'Carhartt', 'Walls', 'Red Kap', 'Ben Davis',
+        
+        // Другие популярные
+        'Pierre Balmain', 'Balmain', 'DONDUP', 'Jacob Cohen', 'PT01',
+        'Eleventy', 'Boglioli', 'Lardini', 'Tagliatore', 'Ring Jacket'
     ];
     
-    // Ищем бренд (точное совпадение, регистронезависимое)
+    // Ищем бренд (сначала точное совпадение как отдельное слово)
     for (const b of brands) {
-        // Создаём регулярное выражение для поиска бренда как отдельного слова
-        const regex = new RegExp('\\b' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+        // Создаём регулярное выражение для поиска бренда
+        // Экранируем специальные символы
+        const escapedBrand = b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp('\\b' + escapedBrand + '\\b', 'gi');
         
         if (firstLine.match(regex)) {
             brand = b;
@@ -287,7 +337,7 @@ async function parseProduct(text, message, id, client) {
         }
     }
     
-    // Если не нашли бренд в первой строке - ищем в тексте
+    // Если не нашли в первой строке - ищем во всём тексте
     if (brand === 'Brand') {
         const fullTextLower = text.toLowerCase();
         for (const b of brands) {
