@@ -302,35 +302,15 @@ async function parseProduct(text, message, id, client) {
         category = 'clothing';
     }
     
-    // ЗАГРУЗКА ФОТО ИЗ TELEGRAM
-    let imageUrl = 'https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=' + encodeURIComponent(brand);
+    // ЗАГЛУШКИ ДЛЯ ФОТО (временно, чтобы избежать TIMEOUT)
+    // Фото будут добавлены позже через другой способ
+    let imageUrl = `https://via.placeholder.com/500x500/1a1a1a/FFFFFF?text=${encodeURIComponent(brand)}`;
     
-    if (message.media && message.media.photo && client) {
-        try {
-            console.log(`  📸 Скачивание фото из сообщения ${message.id}...`);
-            
-            // Скачиваем фото через Telegram Client
-            const buffer = await client.downloadMedia(message.media, { 
-                workers: 1,
-                progressCallback: null
-            });
-            
-            if (buffer && Buffer.isBuffer(buffer)) {
-                // Задержка перед загрузкой на Telegraph (избегаем rate limit)
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Загружаем на Telegraph
-                const telegraphUrl = await uploadToTelegraph(buffer);
-                imageUrl = telegraphUrl;
-                console.log(`  ☁️  Фото загружено: ${telegraphUrl}`);
-            } else {
-                console.log(`  ⚠️  Фото не скачалось (пустой буфер)`);
-            }
-            
-        } catch (e) {
-            console.log(`  ⚠️  Ошибка фото: ${e.message}`);
-            // Используем placeholder если фото не загрузилось
-        }
+    // Можно также использовать разные цвета для разных категорий
+    if (category === 'shoes') {
+        imageUrl = `https://via.placeholder.com/500x500/2a2a2a/FFFFFF?text=${encodeURIComponent(brand)}`;
+    } else if (category === 'accessories') {
+        imageUrl = `https://via.placeholder.com/500x500/3a3a3a/FFFFFF?text=${encodeURIComponent(brand)}`;
     }
     
     // Описание - берём текст до цены
