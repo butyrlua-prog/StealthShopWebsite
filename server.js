@@ -46,6 +46,11 @@ app.post('/api/send-order', async (req, res) => {
             return res.status(500).json({ error: 'Bot not configured' });
         }
         
+        // Логирование для отладки
+        console.log('📦 Новый заказ:');
+        console.log('  Товар:', orderData.product.brand, orderData.product.name);
+        console.log('  Фото URL:', orderData.product.image);
+        
         const message = `
 🛍 <b>НОВЫЙ ЗАКАЗ!</b>
 
@@ -73,14 +78,17 @@ ${orderData.customer.comment || 'Нет'}
         
         const fetch = require('node-fetch');
         
-        // Если есть реальное фото товара (не placeholder) - отправляем с фото
+        // Проверка фото
         const hasRealPhoto = orderData.product.image && 
                              !orderData.product.image.includes('placeholder') &&
                              (orderData.product.image.includes('ibb.co') || 
-                              orderData.product.image.includes('telegra.ph') ||
-                              orderData.product.image.startsWith('http'));
+                              orderData.product.image.includes('telegra.ph'));
+        
+        console.log('  Есть фото:', hasRealPhoto ? 'ДА' : 'НЕТ');
         
         if (hasRealPhoto) {
+            console.log('  📸 Отправляю с фото...');
+            
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -95,13 +103,33 @@ ${orderData.customer.comment || 'Нет'}
             const result = await response.json();
             
             if (result.ok) {
+                console.log('  ✅ Отправлено с фото!');
                 res.json({ success: true });
             } else {
-                console.error('Telegram API error:', result);
-                res.status(500).json({ error: 'Failed to send notification' });
+                console.error('  ❌ Ошибка Telegram API:', result);
+                // Если не получилось с фото - пробуем без фото
+                console.log('  📝 Отправляю без фото...');
+                const textResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                const textResult = await textResponse.json();
+                if (textResult.ok) {
+                    console.log('  ✅ Отправлено без фото');
+                    res.json({ success: true, photoFailed: true });
+                } else {
+                    console.error('  ❌ Не удалось отправить:', textResult);
+                    res.status(500).json({ error: 'Failed to send notification' });
+                }
             }
         } else {
-            // Если нет фото - отправляем просто текст
+            console.log('  📝 Отправляю без фото (нет реального фото)');
+            
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -115,15 +143,16 @@ ${orderData.customer.comment || 'Нет'}
             const result = await response.json();
             
             if (result.ok) {
+                console.log('  ✅ Отправлено без фото');
                 res.json({ success: true });
             } else {
-                console.error('Telegram API error:', result);
+                console.error('  ❌ Ошибка:', result);
                 res.status(500).json({ error: 'Failed to send notification' });
             }
         }
         
     } catch (error) {
-        console.error('Order notification error:', error);
+        console.error('❌ Order notification error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -170,8 +199,10 @@ app.get('/api/debug-config', (req, res) => {
 // CRON JOB - АВТООБНОВЛЕНИЕ КАЖДЫЙ ЧАС
 // ============================================
 
+// Автоматический парсинг ОТКЛЮЧЕН
+// Используйте команду /parse в боте для ручного запуска
+/*
 if (process.env.ENABLE_AUTO_PARSE === 'true') {
-    // Запуск 1 раз в сутки в 3:00 ночи
     cron.schedule('0 3 * * *', async () => {
         console.log('⏰ Запуск автоматического парсинга...');
         try {
@@ -184,6 +215,9 @@ if (process.env.ENABLE_AUTO_PARSE === 'true') {
     
     console.log('✅ Автообновление включено (каждый день в 3:00)');
 }
+*/
+
+console.log('📌 Автопарсинг отключен. Используйте команду /parse в боте для запуска парсинга вручную.');
 
 // Запуск сервера
 app.listen(PORT, () => {
