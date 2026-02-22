@@ -380,7 +380,7 @@ async function parseProduct(text, message, id, client) {
     
     if (lowerText.match(/кроссовки|ботинки|туфли|обувь|shoes|sneakers|boots/)) {
         category = 'shoes';
-    } else if (lowerText.match(/сумка|рюкзак|часы|очки|шапка|кепка|bag|watch|cap|hat|accessory/)) {
+    } else if (lowerText.match(/сумка|клатч|рюкзак|кошелёк|кошелек|портмоне|часы|очки|шапка|кепка|ремень|пояс|серьги|подвеска|цепь|браслет|кольцо|перчатки|шарф|платок|галстук|бабочка|bag|clutch|wallet|purse|backpack|watch|glasses|sunglasses|cap|hat|belt|earrings|pendant|chain|bracelet|ring|gloves|scarf|tie|accessory/)) {
         category = 'accessories';
     } else if (lowerText.match(/куртка|jacket|ветровка|пуховик|пальто/)) {
         category = 'clothing';
