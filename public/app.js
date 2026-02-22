@@ -260,51 +260,29 @@ async function handleOrderSubmit(e) {
 
 // Send Telegram notification
 async function sendTelegramNotification(orderData) {
-    const message = `
-🛍 <b>НОВЫЙ ЗАКАЗ!</b>
-
-━━━━━━━━━━━━━━━━━━━
-📋 <b>Номер заказа:</b> <code>${orderData.orderId}</code>
-
-📦 <b>ТОВАР:</b>
-• ${orderData.product.brand} ${orderData.product.name}
-• Размер: ${orderData.product.size}
-• Цена: ${orderData.product.priceDisplay || orderData.product.price}
-
-👤 <b>ПОКУПАТЕЛЬ:</b>
-• Имя: ${orderData.customer.name}
-• Telegram: ${orderData.customer.telegram}
-• Телефон: ${orderData.customer.phone}
-
-💬 <b>Комментарий:</b>
-${orderData.customer.comment}
-
-⏰ <b>Время заказа:</b> ${orderData.timestamp}
-
-━━━━━━━━━━━━━━━━━━━
-✅ Покупатель будет перенаправлен в ваш Telegram
-    `;
-    
-    const url = `https://api.telegram.org/bot${CONFIG.telegramBotToken}/sendMessage`;
-    
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            chat_id: CONFIG.telegramChatId,
-            text: message,
-            parse_mode: 'HTML'
-        })
-    });
-    
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.description || 'Failed to send notification');
+    try {
+        // Отправляем уведомление через наш сервер (безопаснее - токен не светится)
+        const response = await fetch('/api/send-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to send notification');
+        }
+        
+        console.log('✅ Order notification sent successfully');
+        return response.json();
+        
+    } catch (error) {
+        console.error('❌ Failed to send Telegram notification:', error);
+        // Не блокируем пользователя если уведомление не отправилось
+        throw error;
     }
-    
-    return response.json();
 }
 
 // Close modal
