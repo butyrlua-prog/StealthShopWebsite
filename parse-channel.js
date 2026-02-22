@@ -37,8 +37,14 @@ const CONFIG = {
 
 async function uploadToTelegraph(buffer) {
     return new Promise((resolve, reject) => {
+        const FormData = require('form-data');
         const form = new FormData();
-        form.append('file', buffer, { filename: 'photo.jpg' });
+        
+        // Конвертируем Buffer в правильный формат для Telegraph
+        form.append('file', buffer, {
+            filename: 'photo.jpg',
+            contentType: 'image/jpeg'
+        });
         
         const req = https.request({
             hostname: 'telegra.ph',
@@ -54,10 +60,10 @@ async function uploadToTelegraph(buffer) {
                     if (result && result[0] && result[0].src) {
                         resolve('https://telegra.ph' + result[0].src);
                     } else {
-                        reject(new Error('Telegraph upload failed'));
+                        reject(new Error('Telegraph: ' + (result.error || 'Unknown error')));
                     }
                 } catch (e) {
-                    reject(e);
+                    reject(new Error('Telegraph parse error'));
                 }
             });
         });
@@ -243,21 +249,45 @@ async function parseProduct(text, message, id, client) {
     let brand = 'Brand';
     let name = firstLine;
     
+    // Расширенный список брендов (по приоритету - сначала длинные названия!)
     const brands = [
-        'C.P. Company', 'CP Company', 'Stone Island', 'The North Face',
-        'Nike', 'Adidas', 'Puma', 'Reebok', 'New Balance',
-        'Supreme', 'Balenciaga', 'Gucci', 'Louis Vuitton',
-        'Off-White', 'Yeezy', 'Jordan', 'Vans', 'Converse',
-        'Palace', 'BAPE', 'Stüssy', 'Carhartt', 'Dickies',
-        'Ralph Lauren', 'Tommy Hilfiger', 'Lacoste', 'Hugo Boss'
+        // Премиум и дизайнерские
+        'COSTUME NATIONAL', 'BEVERLY HILLS POLO CLUB', 'The North Face', 'C.P. Company', 
+        'CP Company', 'Stone Island', 'Ralph Lauren', 'Tommy Hilfiger', 'Hugo Boss',
+        'Louis Vuitton', 'Balenciaga', 'Off-White',
+        
+        // Спортивные
+        'U.S. POLO ASSN.', 'U.S. POLO', 'New Balance', 'Reebok', 'Nike', 'Adidas', 
+        'Puma', 'Jordan', 'Yeezy', 'Converse', 'Vans', 'Asics', 'Saucony',
+        
+        // Streetwear
+        'Supreme', 'Palace', 'BAPE', 'Stüssy', 'Carhartt', 'Dickies',
+        
+        // Другие
+        'Gucci', 'Lacoste', 'Champion', 'Fila', 'Kappa', 'Ellesse',
+        'Napapijri', 'Patagonia', 'Columbia', 'Helly Hansen', 'Timberland'
     ];
     
+    // Ищем бренд (точное совпадение, регистронезависимое)
     for (const b of brands) {
-        const regex = new RegExp(b.replace('.', '\\.'), 'gi');
+        // Создаём регулярное выражение для поиска бренда как отдельного слова
+        const regex = new RegExp('\\b' + b.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+        
         if (firstLine.match(regex)) {
             brand = b;
             name = firstLine.replace(regex, '').trim();
             break;
+        }
+    }
+    
+    // Если не нашли бренд в первой строке - ищем в тексте
+    if (brand === 'Brand') {
+        const fullTextLower = text.toLowerCase();
+        for (const b of brands) {
+            if (fullTextLower.includes(b.toLowerCase())) {
+                brand = b;
+                break;
+            }
         }
     }
     
@@ -280,17 +310,26 @@ async function parseProduct(text, message, id, client) {
             console.log(`  📸 Скачивание фото из сообщения ${message.id}...`);
             
             // Скачиваем фото через Telegram Client
-            const buffer = await client.downloadMedia(message.media, { workers: 1 });
+            const buffer = await client.downloadMedia(message.media, { 
+                workers: 1,
+                progressCallback: null
+            });
             
-            if (buffer) {
+            if (buffer && Buffer.isBuffer(buffer)) {
+                // Задержка перед загрузкой на Telegraph (избегаем rate limit)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 // Загружаем на Telegraph
                 const telegraphUrl = await uploadToTelegraph(buffer);
                 imageUrl = telegraphUrl;
                 console.log(`  ☁️  Фото загружено: ${telegraphUrl}`);
+            } else {
+                console.log(`  ⚠️  Фото не скачалось (пустой буфер)`);
             }
             
         } catch (e) {
-            console.log(`  ⚠️  Не удалось загрузить фото: ${e.message}`);
+            console.log(`  ⚠️  Ошибка фото: ${e.message}`);
+            // Используем placeholder если фото не загрузилось
         }
     }
     
