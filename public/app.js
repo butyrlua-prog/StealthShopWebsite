@@ -215,6 +215,7 @@ async function handleOrderSubmit(e) {
             name: currentProduct.name,
             price: currentProduct.price,
             priceDisplay: currentProduct.priceDisplay,
+            image: currentProduct.image,
             size: selectedSize
         },
         customer: {
