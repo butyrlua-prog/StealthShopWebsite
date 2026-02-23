@@ -20,25 +20,32 @@ if (!botToken) {
     // Команда /parse - запустить парсинг
     bot.onText(/\/parse/, async (msg) => {
         const chatId = msg.chat.id.toString();
+        const userId = msg.from.id.toString();
         
         // DEBUG логирование
         console.log(`\n🔍 DEBUG /parse:`);
-        console.log(`  Команда от: chatId="${chatId}"`);
+        console.log(`  Команда от: chatId="${chatId}", userId="${userId}"`);
         console.log(`  Ожидается: adminChatId="${adminChatId}"`);
         console.log(`  Chat type: ${msg.chat.type}`);
         console.log(`  Chat title: ${msg.chat.title || 'N/A'}`);
         
-        // Проверка что команду отправил администратор
-        // Сравниваем без минусов и приводим к строкам
+        // Проверка: либо из группы, либо от админа лично
         const normalizedChatId = chatId.replace(/-/g, '');
         const normalizedAdminId = adminChatId.replace(/-/g, '');
         
+        // ID администратора (ваш личный User ID)
+        const adminUserId = '1981582663';
+        
+        const isFromGroup = normalizedChatId === normalizedAdminId;
+        const isFromAdmin = userId === adminUserId;
+        
         console.log(`  Normalized chatId: "${normalizedChatId}"`);
         console.log(`  Normalized adminId: "${normalizedAdminId}"`);
-        console.log(`  Match: ${normalizedChatId === normalizedAdminId}`);
+        console.log(`  Match by chatId: ${isFromGroup}`);
+        console.log(`  Match by userId: ${isFromAdmin}`);
         
-        if (normalizedChatId !== normalizedAdminId) {
-            console.log(`❌ Отказано: chatId не совпадает с adminChatId\n`);
+        if (!isFromGroup && !isFromAdmin) {
+            console.log(`❌ Отказано: ни группа, ни админ\n`);
             bot.sendMessage(chatId, '❌ У вас нет прав для управления парсером');
             return;
         }
@@ -80,18 +87,23 @@ if (!botToken) {
     // Команда /status - показать статус
     bot.onText(/\/status/, (msg) => {
         const chatId = msg.chat.id.toString();
+        const userId = msg.from.id.toString();
         
         // DEBUG логирование
         console.log(`\n🔍 DEBUG /status:`);
-        console.log(`  Команда от: chatId="${chatId}"`);
+        console.log(`  Команда от: chatId="${chatId}", userId="${userId}"`);
         console.log(`  Ожидается: adminChatId="${adminChatId}"`);
         
         const normalizedChatId = chatId.replace(/-/g, '');
         const normalizedAdminId = adminChatId.replace(/-/g, '');
         
-        console.log(`  Match: ${normalizedChatId === normalizedAdminId}\n`);
+        const adminUserId = '1981582663';
+        const isFromGroup = normalizedChatId === normalizedAdminId;
+        const isFromAdmin = userId === adminUserId;
         
-        if (normalizedChatId !== normalizedAdminId) {
+        console.log(`  Match by chatId: ${isFromGroup}, by userId: ${isFromAdmin}\n`);
+        
+        if (!isFromGroup && !isFromAdmin) {
             bot.sendMessage(chatId, '❌ У вас нет прав для управления парсером');
             return;
         }
