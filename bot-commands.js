@@ -22,7 +22,12 @@ if (!botToken) {
         const chatId = msg.chat.id.toString();
         
         // Проверка что команду отправил администратор
-        if (chatId !== adminChatId && chatId !== adminChatId.replace('-', '')) {
+        // Сравниваем без минусов и приводим к строкам
+        const normalizedChatId = chatId.replace('-', '');
+        const normalizedAdminId = adminChatId.replace('-', '');
+        
+        if (normalizedChatId !== normalizedAdminId) {
+            console.log(`❌ Отказано: chatId=${chatId}, adminChatId=${adminChatId}`);
             bot.sendMessage(chatId, '❌ У вас нет прав для управления парсером');
             return;
         }
@@ -63,7 +68,10 @@ if (!botToken) {
     bot.onText(/\/status/, (msg) => {
         const chatId = msg.chat.id.toString();
         
-        if (chatId !== adminChatId && chatId !== adminChatId.replace('-', '')) {
+        const normalizedChatId = chatId.replace('-', '');
+        const normalizedAdminId = adminChatId.replace('-', '');
+        
+        if (normalizedChatId !== normalizedAdminId) {
             bot.sendMessage(chatId, '❌ У вас нет прав для управления парсером');
             return;
         }
@@ -73,10 +81,7 @@ if (!botToken) {
             ? `🕐 Последний парсинг: ${lastParseTime.toLocaleString('ru-RU')}` 
             : '⏳ Парсинг ещё не запускался';
         
-        const autoParseEnabled = process.env.ENABLE_AUTO_PARSE === 'true';
-        const autoParse = autoParseEnabled 
-            ? '✅ Автопарсинг: Включен (каждый день в 3:00)' 
-            : '❌ Автопарсинг: Выключен';
+        const autoParse = '⏸️ Автопарсинг: Отключен (только ручной запуск)';
         
         bot.sendMessage(chatId, 
             `📊 СТАТУС ПАРСЕРА\n\n` +
@@ -96,8 +101,8 @@ if (!botToken) {
             `/parse - Запустить парсинг вручную\n` +
             `/status - Показать статус парсера\n` +
             `/help - Показать это сообщение\n\n` +
-            `📋 Парсер автоматически обновляет товары каждый день в 3:00\n` +
-            `Используйте /parse если нужно обновить срочно!`
+            `📋 Парсер обновляет товары только по команде /parse\n` +
+            `Запускайте парсинг когда добавили новые товары в канал!`
         );
     });
     
