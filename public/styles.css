@@ -238,6 +238,67 @@ body {
     border-color: #fff;
 }
 
+/* Size Filters */
+.size-filters {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+.size-filter-group {
+    text-align: center;
+}
+
+.size-filter-group label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+.size-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.size-filter-btn {
+    padding: 8px 16px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 50px;
+}
+
+.size-filter-btn:hover,
+.size-filter-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.size-filter-btn.active {
+    background: #fff;
+    color: #000;
+}
+
+/* No Products Message */
+.no-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+
 /* Products Grid */
 .products-grid {
     display: grid;
@@ -296,6 +357,13 @@ body {
     font-size: 16px;
     font-weight: 700;
     color: #999;
+}
+
+.product-sizes {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
 }
 
 /* About Section */
