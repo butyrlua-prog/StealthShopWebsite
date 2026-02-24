@@ -33,6 +33,34 @@
         <div class="container">
             <h2 class="section-title">Новые поступления</h2>
             
+            <!-- Search and Controls -->
+            <div class="controls-panel">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Поиск по бренду, названию...">
+                </div>
+                
+                <div class="sort-box">
+                    <select id="sortSelect">
+                        <option value="newest">Сортировка: Новые</option>
+                        <option value="price_asc">Цена: дешёвые → дорогие</option>
+                        <option value="price_desc">Цена: дорогие → дешёвые</option>
+                        <option value="name_asc">По алфавиту (A-Z)</option>
+                    </select>
+                </div>
+                
+                <div class="price-filter">
+                    <input type="number" id="priceMin" placeholder="от (BYN)">
+                    <span>—</span>
+                    <input type="number" id="priceMax" placeholder="до (BYN)">
+                    <button id="applyPriceFilter">Применить</button>
+                </div>
+            </div>
+            
+            <!-- Results Counter -->
+            <div class="results-counter" id="resultsCounter">
+                Найдено товаров: <span id="productCount">0</span>
+            </div>
+            
             <div class="categories">
                 <button class="category-btn active" data-category="all">Всё</button>
                 <button class="category-btn" data-category="clothing">Одежда</button>
