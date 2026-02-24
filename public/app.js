@@ -132,6 +132,30 @@ function selectSize(size) {
     });
 }
 
+// Update size filters visibility based on category
+function updateSizeFilters(category) {
+    const clothingFilter = document.getElementById('clothingSizeFilter');
+    const shoesFilter = document.getElementById('shoesSizeFilter');
+    const accessoriesFilter = document.getElementById('accessoriesSizeFilter');
+    
+    // Hide all first
+    clothingFilter.style.display = 'none';
+    shoesFilter.style.display = 'none';
+    accessoriesFilter.style.display = 'none';
+    
+    // Show appropriate filters
+    if (category === 'all') {
+        clothingFilter.style.display = 'block';
+        shoesFilter.style.display = 'block';
+    } else if (category === 'clothing') {
+        clothingFilter.style.display = 'block';
+    } else if (category === 'shoes') {
+        shoesFilter.style.display = 'block';
+    } else if (category === 'accessories') {
+        accessoriesFilter.style.display = 'block';
+    }
+}
+
 // Initialize event listeners
 function initializeEventListeners() {
     // Category filters
@@ -140,6 +164,15 @@ function initializeEventListeners() {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             const category = e.target.dataset.category;
+            
+            // Show/hide appropriate size filters based on category
+            updateSizeFilters(category);
+            
+            // Reset size filter to "all"
+            currentSize = 'all';
+            document.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.size-filter-btn[data-size="all"]').forEach(b => b.classList.add('active'));
+            
             loadProducts(category, currentSize);
         });
     });
