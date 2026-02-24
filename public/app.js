@@ -33,19 +33,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeEventListeners();
 });
 
+let currentCategory = 'all';
+let currentSize = 'all';
+
 // Load and display products
-function loadProducts(category = 'all') {
+function loadProducts(category = 'all', size = 'all') {
+    currentCategory = category;
+    currentSize = size;
+    
     const grid = document.getElementById('productsGrid');
     grid.innerHTML = '';
     
-    const filteredProducts = category === 'all' 
-        ? products 
-        : products.filter(p => p.category === category);
+    let filteredProducts = products;
+    
+    // Filter by category
+    if (category !== 'all') {
+        filteredProducts = filteredProducts.filter(p => p.category === category);
+    }
+    
+    // Filter by size
+    if (size !== 'all') {
+        filteredProducts = filteredProducts.filter(p => 
+            p.sizes && p.sizes.includes(size)
+        );
+    }
     
     filteredProducts.forEach(product => {
         const card = createProductCard(product);
         grid.appendChild(card);
     });
+    
+    // Show message if no products found
+    if (filteredProducts.length === 0) {
+        grid.innerHTML = '<div class="no-products">Товары не найдены. Попробуйте изменить фильтры.</div>';
+    }
 }
 
 // Create product card
@@ -62,6 +83,7 @@ function createProductCard(product) {
             <div class="product-brand">${product.brand}</div>
             <div class="product-name">${product.name}</div>
             <div class="product-price">${product.priceDisplay || '$' + product.price}</div>
+            <div class="product-sizes">Размер: ${product.sizes.join(', ')}</div>
         </div>
     `;
     
@@ -118,7 +140,19 @@ function initializeEventListeners() {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             const category = e.target.dataset.category;
-            loadProducts(category);
+            loadProducts(category, currentSize);
+        });
+    });
+    
+    // Size filters
+    document.querySelectorAll('.size-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Remove active from the same group
+            const group = e.target.closest('.size-filter-group');
+            group.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const size = e.target.dataset.size;
+            loadProducts(currentCategory, size);
         });
     });
     
