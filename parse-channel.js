@@ -295,9 +295,13 @@ async function parseProduct(text, message, id, client) {
     if (sizeMatch) {
         let sizeText = sizeMatch[1].trim();
         
+        // Специальная обработка "One Size" / "One-Size" / "OS"
+        if (sizeText.match(/^(one[\s-]?size|os)$/i)) {
+            sizes = ['One Size'];
+        }
         // Обрабатываем формат "L (EU 48)" - извлекаем оба размера
-        const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i);
-        if (euMatch) {
+        else if (sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i)) {
+            const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i);
             // Берём оба размера: буквенный и EU
             sizes = [euMatch[1].toUpperCase(), euMatch[2]];
         }
