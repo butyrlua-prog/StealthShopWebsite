@@ -14,6 +14,14 @@
             <nav class="nav">
                 <a href="#collection">Коллекция</a>
                 <a href="#about">О нас</a>
+                <button id="filterToggle" class="filter-toggle-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                    ФИЛЬТРЫ
+                </button>
                 <a href="#" id="contactSeller" class="contact-btn">Связаться с продавцом</a>
             </nav>
         </div>
@@ -32,29 +40,6 @@
     <section id="collection" class="collection">
         <div class="container">
             <h2 class="section-title">Новые поступления</h2>
-            
-            <!-- Search and Controls -->
-            <div class="controls-panel">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="🔍 Поиск по бренду, названию...">
-                </div>
-                
-                <div class="sort-box">
-                    <select id="sortSelect">
-                        <option value="newest">Сортировка: Новые</option>
-                        <option value="price_asc">Цена: дешёвые → дорогие</option>
-                        <option value="price_desc">Цена: дорогие → дешёвые</option>
-                        <option value="name_asc">По алфавиту (A-Z)</option>
-                    </select>
-                </div>
-                
-                <div class="price-filter">
-                    <input type="number" id="priceMin" placeholder="от (BYN)">
-                    <span>—</span>
-                    <input type="number" id="priceMax" placeholder="до (BYN)">
-                    <button id="applyPriceFilter">Применить</button>
-                </div>
-            </div>
             
             <!-- Results Counter -->
             <div class="results-counter" id="resultsCounter">
@@ -264,6 +249,118 @@
             <button class="btn-primary" id="goToTelegram">Перейти в Telegram</button>
         </div>
     </div>
+
+    <!-- Filter Sidebar -->
+    <div id="filterSidebar" class="filter-sidebar">
+        <div class="filter-sidebar-header">
+            <h3>Фильтры</h3>
+            <button class="filter-close" id="filterClose">&times;</button>
+        </div>
+        
+        <div class="filter-sidebar-content">
+            <!-- Search -->
+            <div class="filter-section">
+                <label>Поиск</label>
+                <input type="text" id="searchInput" placeholder="Бренд, название...">
+            </div>
+            
+            <!-- Sort -->
+            <div class="filter-section">
+                <label>Сортировка</label>
+                <select id="sortSelect">
+                    <option value="newest">Новые</option>
+                    <option value="price-asc">Цена: дешёвые → дорогие</option>
+                    <option value="price-desc">Цена: дорогие → дешёвые</option>
+                    <option value="name-asc">По алфавиту (A-Z)</option>
+                </select>
+            </div>
+            
+            <!-- Price Range -->
+            <div class="filter-section">
+                <label>Цена (BYN)</label>
+                <div class="price-inputs">
+                    <input type="number" id="priceMin" placeholder="от">
+                    <span>—</span>
+                    <input type="number" id="priceMax" placeholder="до">
+                </div>
+            </div>
+            
+            <!-- Category (duplicated for filter panel) -->
+            <div class="filter-section">
+                <label>Категория</label>
+                <div class="filter-buttons">
+                    <button class="filter-cat-btn active" data-category="all">Всё</button>
+                    <button class="filter-cat-btn" data-category="clothing">Одежда</button>
+                    <button class="filter-cat-btn" data-category="shoes">Обувь</button>
+                    <button class="filter-cat-btn" data-category="accessories">Аксессуары</button>
+                </div>
+            </div>
+            
+            <!-- Size Filters -->
+            <div class="filter-section" id="filterClothingSize">
+                <label>Размер одежды</label>
+                <div class="filter-buttons">
+                    <button class="filter-size-btn active" data-size="all">Все</button>
+                    <button class="filter-size-btn" data-size="XS">XS</button>
+                    <button class="filter-size-btn" data-size="S">S</button>
+                    <button class="filter-size-btn" data-size="M">M</button>
+                    <button class="filter-size-btn" data-size="L">L</button>
+                    <button class="filter-size-btn" data-size="XL">XL</button>
+                    <button class="filter-size-btn" data-size="XXL">XXL</button>
+                </div>
+            </div>
+            
+            <div class="filter-section" id="filterShoesSize">
+                <label>Размер обуви</label>
+                <div class="filter-buttons filter-buttons-small">
+                    <button class="filter-size-btn active" data-size="all">Все</button>
+                    <button class="filter-size-btn" data-size="35">35</button>
+                    <button class="filter-size-btn" data-size="35.5">35.5</button>
+                    <button class="filter-size-btn" data-size="36">36</button>
+                    <button class="filter-size-btn" data-size="36.5">36.5</button>
+                    <button class="filter-size-btn" data-size="37">37</button>
+                    <button class="filter-size-btn" data-size="37.5">37.5</button>
+                    <button class="filter-size-btn" data-size="38">38</button>
+                    <button class="filter-size-btn" data-size="38.5">38.5</button>
+                    <button class="filter-size-btn" data-size="39">39</button>
+                    <button class="filter-size-btn" data-size="39.5">39.5</button>
+                    <button class="filter-size-btn" data-size="40">40</button>
+                    <button class="filter-size-btn" data-size="40.5">40.5</button>
+                    <button class="filter-size-btn" data-size="41">41</button>
+                    <button class="filter-size-btn" data-size="41.5">41.5</button>
+                    <button class="filter-size-btn" data-size="42">42</button>
+                    <button class="filter-size-btn" data-size="42.5">42.5</button>
+                    <button class="filter-size-btn" data-size="43">43</button>
+                    <button class="filter-size-btn" data-size="43.5">43.5</button>
+                    <button class="filter-size-btn" data-size="44">44</button>
+                    <button class="filter-size-btn" data-size="44.5">44.5</button>
+                    <button class="filter-size-btn" data-size="45">45</button>
+                    <button class="filter-size-btn" data-size="45.5">45.5</button>
+                    <button class="filter-size-btn" data-size="46">46</button>
+                </div>
+            </div>
+            
+            <div class="filter-section" id="filterAccessoriesSize" style="display: none;">
+                <label>Размер головного убора</label>
+                <div class="filter-buttons">
+                    <button class="filter-size-btn active" data-size="all">Все</button>
+                    <button class="filter-size-btn" data-size="S">S</button>
+                    <button class="filter-size-btn" data-size="M">M</button>
+                    <button class="filter-size-btn" data-size="L">L</button>
+                    <button class="filter-size-btn" data-size="XL">XL</button>
+                    <button class="filter-size-btn" data-size="One Size">One Size</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filter-sidebar-footer">
+            <button class="btn-reset" id="filterReset">Сбросить</button>
+            <button class="btn-apply" id="filterApply">Применить</button>
+        </div>
+    </div>
+    
+    <!-- Filter Overlay -->
+    <div id="filterOverlay" class="filter-overlay"></div>
 
     <script src="products.js"></script>
     <script src="app.js"></script>
