@@ -156,6 +156,27 @@ async function parseChannel() {
             console.log(`⏭️  Пропущено ${skippedOther} объявлений/розыгрышей`);
         }
         
+        // ОБРАБОТКА СТАТУСОВ
+        // Переводим статусы на русский и добавляем "Новинка" последним 20 товарам
+        products.forEach((product, index) => {
+            // Перевод статусов на русский
+            if (product.status === 'sale') {
+                product.status = 'Sale';
+            } else if (product.status === 'new') {
+                product.status = 'Новинка';
+            } else if (product.status === 'exclusive') {
+                product.status = 'Эксклюзив';
+            } else if (product.status === 'hot') {
+                product.status = null; // Убираем статус "hot"
+            }
+            
+            // Последние 20 товаров автоматически получают статус "Новинка"
+            // если у них ещё нет статуса
+            if (!product.status && index < 20) {
+                product.status = 'Новинка';
+            }
+        });
+        
         // Сохраняем в файл
         saveProductsFile(products);
         
@@ -469,6 +490,21 @@ async function parseProduct(text, message, id, client) {
     brand = removeEmojis(brand);
     description = removeEmojis(description);
     
+    // ОПРЕДЕЛЕНИЕ СТАТУСА ТОВАРА
+    let status = null;
+    const lowerFullText = text.toLowerCase();
+    
+    // Проверяем ключевые слова для статусов (в порядке приоритета)
+    if (lowerFullText.match(/скидка|sale|распродажа|промо|promo|discount|-%/)) {
+        status = 'sale';
+    } else if (lowerFullText.match(/новинка|new|новый|поступление|новое/)) {
+        status = 'new';
+    } else if (lowerFullText.match(/эксклюзив|exclusive|limited|лимитированный|редкий/)) {
+        status = 'exclusive';
+    } else if (lowerFullText.match(/хит|популярн|bestseller|топ|top/)) {
+        status = 'hot';
+    }
+    
     return {
         id,
         name: name || 'Product',
@@ -479,7 +515,8 @@ async function parseProduct(text, message, id, client) {
         currency: 'Multi',
         image: imageUrl,
         description: description || 'Premium quality',
-        sizes
+        sizes,
+        status  // Новое поле!
     };
 }
 
