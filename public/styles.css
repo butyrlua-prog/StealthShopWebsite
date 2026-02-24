@@ -119,6 +119,33 @@ body {
     outline: 2px solid #fff;
 }
 
+/* Secondary Button */
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 40px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-secondary svg {
+    opacity: 0.9;
+}
+
 .btn-buy {
     width: 100%;
     padding: 20px;
@@ -137,6 +164,36 @@ body {
 .btn-buy:hover {
     background: #fff;
     color: #000;
+}
+
+/* Telegram Photos Button */
+.btn-telegram-photos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 15px;
+}
+
+.btn-telegram-photos:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-telegram-photos svg {
+    opacity: 0.8;
 }
 
 /* Collection Section */
@@ -284,12 +341,14 @@ body {
 .footer-section h4 {
     margin-bottom: 15px;
     letter-spacing: 1px;
+    text-align: center;
 }
 
 .footer-section p {
     opacity: 0.7;
     font-size: 14px;
     margin-bottom: 10px;
+    text-align: center;
 }
 
 .footer-bottom {
@@ -345,9 +404,10 @@ body {
 }
 
 .modal-image img {
-    width: 100%;
+    width: 80%;
     height: auto;
     display: block;
+    margin: 0 auto;
 }
 
 .modal-info h2 {
@@ -566,6 +626,12 @@ body {
 /* Contact Info */
 .contact-info {
     margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Order Content */
