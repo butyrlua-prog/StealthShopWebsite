@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let currentCategory = 'all';
 let currentSize = 'all';
+let searchQuery = '';
+let sortBy = 'newest';
+let priceRange = { min: null, max: null };
 
 // Load and display products
 function loadProducts(category = 'all', size = 'all') {
@@ -58,6 +61,42 @@ function loadProducts(category = 'all', size = 'all') {
         );
     }
     
+    // Filter by search query
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredProducts = filteredProducts.filter(p => 
+            p.name.toLowerCase().includes(query) ||
+            p.brand.toLowerCase().includes(query) ||
+            (p.description && p.description.toLowerCase().includes(query))
+        );
+    }
+    
+    // Filter by price range
+    if (priceRange.min !== null || priceRange.max !== null) {
+        filteredProducts = filteredProducts.filter(p => {
+            const price = p.price || 0;
+            const minOk = priceRange.min === null || price >= priceRange.min;
+            const maxOk = priceRange.max === null || price <= priceRange.max;
+            return minOk && maxOk;
+        });
+    }
+    
+    // Sort products
+    if (sortBy === 'price-asc') {
+        filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === 'price-desc') {
+        filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (sortBy === 'name-asc') {
+        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    // 'newest' - keep original order (last parsed first)
+    
+    // Update counter
+    const counter = document.getElementById('productCount');
+    if (counter) {
+        counter.textContent = filteredProducts.length;
+    }
+    
     filteredProducts.forEach(product => {
         const card = createProductCard(product);
         grid.appendChild(card);
@@ -75,8 +114,24 @@ function createProductCard(product) {
     card.className = 'product-card';
     card.onclick = () => openProductModal(product);
     
+    // Status badge
+    let statusBadge = '';
+    if (product.status) {
+        const statusConfig = {
+            'new': { label: '🔥 НОВИНКА', class: 'status-new' },
+            'sale': { label: '💰 SALE', class: 'status-sale' },
+            'exclusive': { label: '⭐ ЭКСКЛЮЗИВ', class: 'status-exclusive' },
+            'hot': { label: '🔥 ХИТ', class: 'status-hot' }
+        };
+        const config = statusConfig[product.status];
+        if (config) {
+            statusBadge = `<div class="status-badge ${config.class}">${config.label}</div>`;
+        }
+    }
+    
     card.innerHTML = `
         <div class="product-image">
+            ${statusBadge}
             <img src="${product.image}" alt="${product.name}" loading="lazy">
         </div>
         <div class="product-info">
@@ -188,6 +243,38 @@ function initializeEventListeners() {
             loadProducts(currentCategory, size);
         });
     });
+    
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            loadProducts(currentCategory, currentSize);
+        });
+    }
+    
+    // Sort select
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            sortBy = e.target.value;
+            loadProducts(currentCategory, currentSize);
+        });
+    }
+    
+    // Price filter
+    const applyPriceBtn = document.getElementById('applyPriceFilter');
+    if (applyPriceBtn) {
+        applyPriceBtn.addEventListener('click', () => {
+            const minInput = document.getElementById('priceMin');
+            const maxInput = document.getElementById('priceMax');
+            
+            priceRange.min = minInput.value ? parseFloat(minInput.value) : null;
+            priceRange.max = maxInput.value ? parseFloat(maxInput.value) : null;
+            
+            loadProducts(currentCategory, currentSize);
+        });
+    }
     
     // Buy button
     document.getElementById('buyButton').addEventListener('click', () => {
