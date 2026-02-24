@@ -268,14 +268,14 @@ body {
 }
 
 .size-filter-btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
     background: transparent;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.3s;
-    min-width: 50px;
+    min-width: 45px;
 }
 
 .size-filter-btn:hover,
