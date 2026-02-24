@@ -211,6 +211,30 @@ function updateSizeFilters(category) {
     }
 }
 
+// Update filter sidebar size visibility
+function updateFilterSizeVisibility(category) {
+    const clothingFilter = document.getElementById('filterClothingSize');
+    const shoesFilter = document.getElementById('filterShoesSize');
+    const accessoriesFilter = document.getElementById('filterAccessoriesSize');
+    
+    // Hide all first
+    if (clothingFilter) clothingFilter.style.display = 'none';
+    if (shoesFilter) shoesFilter.style.display = 'none';
+    if (accessoriesFilter) accessoriesFilter.style.display = 'none';
+    
+    // Show appropriate filters
+    if (category === 'all') {
+        if (clothingFilter) clothingFilter.style.display = 'block';
+        if (shoesFilter) shoesFilter.style.display = 'block';
+    } else if (category === 'clothing') {
+        if (clothingFilter) clothingFilter.style.display = 'block';
+    } else if (category === 'shoes') {
+        if (shoesFilter) shoesFilter.style.display = 'block';
+    } else if (category === 'accessories') {
+        if (accessoriesFilter) accessoriesFilter.style.display = 'block';
+    }
+}
+
 // Initialize event listeners
 function initializeEventListeners() {
     // Category filters
@@ -275,6 +299,126 @@ function initializeEventListeners() {
             loadProducts(currentCategory, currentSize);
         });
     }
+    
+    // Filter Sidebar Controls
+    const filterToggle = document.getElementById('filterToggle');
+    const filterSidebar = document.getElementById('filterSidebar');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const filterApply = document.getElementById('filterApply');
+    const filterReset = document.getElementById('filterReset');
+    
+    // Open sidebar
+    if (filterToggle) {
+        filterToggle.addEventListener('click', () => {
+            filterSidebar.classList.add('active');
+            filterOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    // Close sidebar
+    function closeFilterSidebar() {
+        filterSidebar.classList.remove('active');
+        filterOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (filterClose) {
+        filterClose.addEventListener('click', closeFilterSidebar);
+    }
+    
+    if (filterOverlay) {
+        filterOverlay.addEventListener('click', closeFilterSidebar);
+    }
+    
+    // Apply filters and close
+    if (filterApply) {
+        filterApply.addEventListener('click', () => {
+            // Get values from sidebar inputs
+            const minInput = document.getElementById('priceMin');
+            const maxInput = document.getElementById('priceMax');
+            
+            priceRange.min = minInput.value ? parseFloat(minInput.value) : null;
+            priceRange.max = maxInput.value ? parseFloat(maxInput.value) : null;
+            
+            loadProducts(currentCategory, currentSize);
+            closeFilterSidebar();
+        });
+    }
+    
+    // Reset filters
+    if (filterReset) {
+        filterReset.addEventListener('click', () => {
+            // Reset all filters
+            searchQuery = '';
+            sortBy = 'newest';
+            priceRange = { min: null, max: null };
+            currentSize = 'all';
+            
+            // Reset inputs
+            document.getElementById('searchInput').value = '';
+            document.getElementById('sortSelect').value = 'newest';
+            document.getElementById('priceMin').value = '';
+            document.getElementById('priceMax').value = '';
+            
+            // Reset size buttons
+            document.querySelectorAll('.filter-size-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.size === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Reset category to all
+            currentCategory = 'all';
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.category === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            document.querySelectorAll('.filter-cat-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.category === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            loadProducts('all', 'all');
+        });
+    }
+    
+    // Filter sidebar category buttons
+    document.querySelectorAll('.filter-cat-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-cat-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const category = e.target.dataset.category;
+            currentCategory = category;
+            
+            // Update main category buttons too
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.category === category) {
+                    b.classList.add('active');
+                }
+            });
+            
+            // Update size filter visibility
+            updateFilterSizeVisibility(category);
+        });
+    });
+    
+    // Filter sidebar size buttons
+    document.querySelectorAll('.filter-size-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const group = e.target.closest('.filter-section');
+            group.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentSize = e.target.dataset.size;
+        });
+    });
     
     // Buy button
     document.getElementById('buyButton').addEventListener('click', () => {
