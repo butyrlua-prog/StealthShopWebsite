@@ -287,24 +287,37 @@ async function parseProduct(text, message, id, client) {
     const mainPrice = prices.USD || Object.values(prices)[0];
     
     // УЛУЧШЕННЫЙ ПАРСИНГ РАЗМЕРОВ
-    // Ищем "Размер: L" или "Размеры: 40-44" или "Size: M"
+    // Ищем "Размер: L" или "Размеры: 40-44" или "Size: M" или "L (EU 48)"
     const sizePattern = /(?:размер[ыа]?|size[s]?)\s*:?\s*([^\n]+)/i;
     const sizeMatch = text.match(sizePattern);
     
     let sizes = ['One Size'];
     if (sizeMatch) {
-        const sizeText = sizeMatch[1].trim();
+        let sizeText = sizeMatch[1].trim();
         
+        // Обрабатываем формат "L (EU 48)" - извлекаем оба размера
+        const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i);
+        if (euMatch) {
+            // Берём оба размера: буквенный и EU
+            sizes = [euMatch[1].toUpperCase(), euMatch[2]];
+        }
         // Диапазон типа "40-44"
-        if (sizeText.match(/^\d+\s*-\s*\d+$/)) {
-            const [start, end] = sizeText.split('-').map(s => parseInt(s.trim()));
+        else if (sizeText.match(/^\d+\.?\d*\s*-\s*\d+\.?\d*$/)) {
+            const [start, end] = sizeText.split('-').map(s => parseFloat(s.trim()));
             sizes = [];
-            for (let i = start; i <= end; i++) {
-                sizes.push(i.toString());
+            // Для обуви учитываем полуразмеры
+            if (start >= 35 && end <= 50) {
+                for (let i = start; i <= end; i += 0.5) {
+                    sizes.push(i.toString());
+                }
+            } else {
+                for (let i = start; i <= end; i++) {
+                    sizes.push(i.toString());
+                }
             }
         }
-        // Буквенные размеры или одиночные
-        else if (sizeText.match(/^[A-Z0-9]+$/i)) {
+        // Буквенные размеры или одиночные числа
+        else if (sizeText.match(/^[A-Z0-9.]+$/i)) {
             sizes = [sizeText.toUpperCase()];
         }
         // Несколько размеров через запятую "S, M, L"
