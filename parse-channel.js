@@ -316,6 +316,9 @@ async function parseProduct(text, message, id, client) {
     if (sizeMatch) {
         let sizeText = sizeMatch[1].trim();
         
+        // Убираем префиксы размеров: EUR:, US:, UK:, EU:, RU: и т.д.
+        sizeText = sizeText.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
+        
         // Специальная обработка "One Size" / "One-Size" / "OS"
         if (sizeText.match(/^(one[\s-]?size|os)$/i)) {
             sizes = ['One Size'];
@@ -345,12 +348,23 @@ async function parseProduct(text, message, id, client) {
         else if (sizeText.match(/^[A-Z0-9.]+$/i)) {
             sizes = [sizeText.toUpperCase()];
         }
-        // Несколько размеров через запятую "S, M, L"
+        // Несколько размеров через запятую "S, M, L" или "39, 40, 41"
         else if (sizeText.includes(',') || sizeText.includes('/')) {
-            sizes = sizeText.split(/[,\/]/).map(s => s.trim().toUpperCase()).filter(s => s);
+            sizes = sizeText.split(/[,\/]/)
+                .map(s => {
+                    s = s.trim();
+                    // Убираем префиксы из каждого размера
+                    s = s.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
+                    return s.toUpperCase();
+                })
+                .filter(s => s && s.length > 0);
         }
         else {
-            sizes = [sizeText];
+            // Последняя попытка - просто очищаем и сохраняем
+            sizeText = sizeText.trim();
+            if (sizeText.length > 0 && sizeText.length < 10) {
+                sizes = [sizeText];
+            }
         }
     }
     
