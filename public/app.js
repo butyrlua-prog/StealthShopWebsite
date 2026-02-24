@@ -237,6 +237,34 @@ function updateFilterSizeVisibility(category) {
 
 // Initialize event listeners
 function initializeEventListeners() {
+    // Open/Close Filter Sidebar
+    const openFiltersBtn = document.getElementById('openFiltersBtn');
+    const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    const filterSidebar = document.getElementById('filterSidebar');
+    const filterOverlay = document.getElementById('filterOverlay');
+    
+    function openFilters() {
+        filterSidebar.classList.add('active');
+        filterOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeFilters() {
+        filterSidebar.classList.remove('active');
+        filterOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    openFiltersBtn.addEventListener('click', openFilters);
+    closeFiltersBtn.addEventListener('click', closeFilters);
+    filterOverlay.addEventListener('click', closeFilters);
+    
+    applyFiltersBtn.addEventListener('click', () => {
+        loadProducts(currentCategory, currentSize);
+        closeFilters();
+    });
+    
     // Category filters
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -249,76 +277,62 @@ function initializeEventListeners() {
             
             // Reset size filter to "all"
             currentSize = 'all';
-            document.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.size-filter-btn[data-size="all"]').forEach(b => b.classList.add('active'));
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.size-btn[data-size="all"]').forEach(b => b.classList.add('active'));
             
             loadProducts(category, currentSize);
         });
     });
     
     // Size filters
-    document.querySelectorAll('.size-filter-btn').forEach(btn => {
+    document.querySelectorAll('.size-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             // Remove active from the same group
-            const group = e.target.closest('.size-filter-group');
-            group.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
+            const group = e.target.closest('.filter-section');
+            group.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             const size = e.target.dataset.size;
-            loadProducts(currentCategory, size);
+            currentSize = size;
+            // Don't reload immediately, wait for Apply button
         });
     });
     
-    // Search input
+    // Search input - update on typing for live search
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchQuery = e.target.value;
+            // Apply immediately for better UX
             loadProducts(currentCategory, currentSize);
         });
     }
     
-    // Sort select
+    // Sort select - apply immediately
     const sortSelect = document.getElementById('sortSelect');
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             sortBy = e.target.value;
+            // Apply immediately
             loadProducts(currentCategory, currentSize);
         });
     }
     
-    // Price filter
-    const applyPriceBtn = document.getElementById('applyPriceFilter');
-    if (applyPriceBtn) {
-        applyPriceBtn.addEventListener('click', () => {
-            const minInput = document.getElementById('priceMin');
-            const maxInput = document.getElementById('priceMax');
-            
-            priceRange.min = minInput.value ? parseFloat(minInput.value) : null;
-            priceRange.max = maxInput.value ? parseFloat(maxInput.value) : null;
-            
-            loadProducts(currentCategory, currentSize);
+    // Price inputs - only store values, apply on button click
+    const priceMinInput = document.getElementById('priceMin');
+    const priceMaxInput = document.getElementById('priceMax');
+    
+    if (priceMinInput) {
+        priceMinInput.addEventListener('change', (e) => {
+            priceRange.min = e.target.value ? parseFloat(e.target.value) : null;
         });
     }
     
-    // Filter Sidebar Controls
-    const filterToggle = document.getElementById('filterToggle');
-    const filterSidebar = document.getElementById('filterSidebar');
-    const filterOverlay = document.getElementById('filterOverlay');
-    const filterClose = document.getElementById('filterClose');
-    const filterApply = document.getElementById('filterApply');
-    const filterReset = document.getElementById('filterReset');
-    
-    // Open sidebar
-    if (filterToggle) {
-        filterToggle.addEventListener('click', () => {
-            filterSidebar.classList.add('active');
-            filterOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+    if (priceMaxInput) {
+        priceMaxInput.addEventListener('change', (e) => {
+            priceRange.max = e.target.value ? parseFloat(e.target.value) : null;
         });
     }
     
-    // Close sidebar
-    function closeFilterSidebar() {
         filterSidebar.classList.remove('active');
         filterOverlay.classList.remove('active');
         document.body.style.overflow = '';
@@ -417,6 +431,14 @@ function initializeEventListeners() {
             group.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             currentSize = e.target.dataset.size;
+        });
+    });
+    
+    // Collapsible filter sections (for mobile)
+    document.querySelectorAll('.filter-section.collapsible label').forEach(label => {
+        label.addEventListener('click', (e) => {
+            const section = e.target.closest('.filter-section');
+            section.classList.toggle('collapsed');
         });
     });
     
