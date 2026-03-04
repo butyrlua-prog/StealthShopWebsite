@@ -41,17 +41,9 @@
         <div class="container">
             <h2 class="section-title">Новые поступления</h2>
             
-            <!-- Filter Button and Counter -->
-            <div class="filter-header">
-                <button id="openFiltersBtn" class="open-filters-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    Фильтры и поиск
-                </button>
-                <div class="results-counter" id="resultsCounter">
-                    Найдено товаров: <span id="productCount">0</span>
-                </div>
+            <!-- Results Counter -->
+            <div class="results-counter" id="resultsCounter">
+                Найдено товаров: <span id="productCount">0</span>
             </div>
             
             <div class="categories">
@@ -60,108 +52,6 @@
                 <button class="category-btn" data-category="shoes">Обувь</button>
                 <button class="category-btn" data-category="accessories">Аксессуары</button>
             </div>
-
-            <!-- Filter Sidebar -->
-            <div class="filter-sidebar" id="filterSidebar">
-                <div class="filter-sidebar-header">
-                    <h3>Фильтры</h3>
-                    <button class="close-filters-btn" id="closeFiltersBtn">✕</button>
-                </div>
-                
-                <div class="filter-sidebar-content">
-                    <!-- Search -->
-                    <div class="filter-section">
-                        <label class="filter-label">🔍 Поиск</label>
-                        <input type="text" id="searchInput" class="filter-input" placeholder="Бренд, название...">
-                    </div>
-                    
-                    <!-- Sort -->
-                    <div class="filter-section">
-                        <label class="filter-label">📊 Сортировка</label>
-                        <select id="sortSelect" class="filter-select">
-                            <option value="newest">Новые</option>
-                            <option value="price-asc">Цена: дешёвые → дорогие</option>
-                            <option value="price-desc">Цена: дорогие → дешёвые</option>
-                            <option value="name-asc">По алфавиту (A-Z)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Price Range -->
-                    <div class="filter-section">
-                        <label class="filter-label">💰 Цена (BYN)</label>
-                        <div class="price-inputs">
-                            <input type="number" id="priceMin" class="filter-input-small" placeholder="от">
-                            <span>—</span>
-                            <input type="number" id="priceMax" class="filter-input-small" placeholder="до">
-                        </div>
-                    </div>
-                    
-                    <!-- Clothing Sizes -->
-                    <div class="filter-section" id="clothingSizeFilter">
-                        <label class="filter-label">👕 Размер одежды</label>
-                        <div class="size-grid">
-                            <button class="size-btn active" data-size="all">Все</button>
-                            <button class="size-btn" data-size="XS">XS</button>
-                            <button class="size-btn" data-size="S">S</button>
-                            <button class="size-btn" data-size="M">M</button>
-                            <button class="size-btn" data-size="L">L</button>
-                            <button class="size-btn" data-size="XL">XL</button>
-                            <button class="size-btn" data-size="XXL">XXL</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Shoes Sizes -->
-                    <div class="filter-section" id="shoesSizeFilter">
-                        <label class="filter-label">👟 Размер обуви</label>
-                        <div class="size-grid">
-                            <button class="size-btn active" data-size="all">Все</button>
-                            <button class="size-btn" data-size="35">35</button>
-                            <button class="size-btn" data-size="35.5">35.5</button>
-                            <button class="size-btn" data-size="36">36</button>
-                            <button class="size-btn" data-size="36.5">36.5</button>
-                            <button class="size-btn" data-size="37">37</button>
-                            <button class="size-btn" data-size="37.5">37.5</button>
-                            <button class="size-btn" data-size="38">38</button>
-                            <button class="size-btn" data-size="38.5">38.5</button>
-                            <button class="size-btn" data-size="39">39</button>
-                            <button class="size-btn" data-size="39.5">39.5</button>
-                            <button class="size-btn" data-size="40">40</button>
-                            <button class="size-btn" data-size="40.5">40.5</button>
-                            <button class="size-btn" data-size="41">41</button>
-                            <button class="size-btn" data-size="41.5">41.5</button>
-                            <button class="size-btn" data-size="42">42</button>
-                            <button class="size-btn" data-size="42.5">42.5</button>
-                            <button class="size-btn" data-size="43">43</button>
-                            <button class="size-btn" data-size="43.5">43.5</button>
-                            <button class="size-btn" data-size="44">44</button>
-                            <button class="size-btn" data-size="44.5">44.5</button>
-                            <button class="size-btn" data-size="45">45</button>
-                            <button class="size-btn" data-size="45.5">45.5</button>
-                            <button class="size-btn" data-size="46">46</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Accessories Sizes -->
-                    <div class="filter-section" id="accessoriesSizeFilter" style="display: none;">
-                        <label class="filter-label">🧢 Размер головного убора</label>
-                        <div class="size-grid">
-                            <button class="size-btn active" data-size="all">Все</button>
-                            <button class="size-btn" data-size="S">S</button>
-                            <button class="size-btn" data-size="M">M</button>
-                            <button class="size-btn" data-size="L">L</button>
-                            <button class="size-btn" data-size="XL">XL</button>
-                            <button class="size-btn" data-size="One Size">One Size</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="filter-sidebar-footer">
-                    <button id="applyFiltersBtn" class="apply-filters-btn">Применить</button>
-                </div>
-            </div>
-            
-            <!-- Overlay -->
-            <div class="filter-overlay" id="filterOverlay"></div>
 
             <div class="products-grid" id="productsGrid">
                 <!-- Products will be loaded here by JavaScript -->
