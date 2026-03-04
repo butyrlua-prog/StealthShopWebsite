@@ -288,19 +288,27 @@ function initializeEventListeners() {
         });
     }
     
-    // Price inputs - only store values, apply on button click
+    // Price inputs - apply on change
     const priceMinInput = document.getElementById('priceMin');
     const priceMaxInput = document.getElementById('priceMax');
     
+    function applyPriceFilter() {
+        priceRange.min = priceMinInput && priceMinInput.value ? parseFloat(priceMinInput.value) : null;
+        priceRange.max = priceMaxInput && priceMaxInput.value ? parseFloat(priceMaxInput.value) : null;
+        loadProducts(currentCategory, currentSize);
+    }
+    
     if (priceMinInput) {
-        priceMinInput.addEventListener('change', (e) => {
-            priceRange.min = e.target.value ? parseFloat(e.target.value) : null;
+        priceMinInput.addEventListener('change', applyPriceFilter);
+        priceMinInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') applyPriceFilter();
         });
     }
     
     if (priceMaxInput) {
-        priceMaxInput.addEventListener('change', (e) => {
-            priceRange.max = e.target.value ? parseFloat(e.target.value) : null;
+        priceMaxInput.addEventListener('change', applyPriceFilter);
+        priceMaxInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') applyPriceFilter();
         });
     }
     
@@ -336,17 +344,9 @@ function initializeEventListeners() {
         filterOverlay.addEventListener('click', closeFilterSidebar);
     }
     
-    // Apply filters and close
+    // Apply filters and close - just close since filters apply immediately
     if (filterApply) {
         filterApply.addEventListener('click', () => {
-            // Get values from sidebar inputs
-            const minInput = document.getElementById('priceMin');
-            const maxInput = document.getElementById('priceMax');
-            
-            priceRange.min = minInput.value ? parseFloat(minInput.value) : null;
-            priceRange.max = maxInput.value ? parseFloat(maxInput.value) : null;
-            
-            loadProducts(currentCategory, currentSize);
             closeFilterSidebar();
         });
     }
@@ -393,7 +393,7 @@ function initializeEventListeners() {
         });
     }
     
-    // Filter sidebar category buttons
+    // Filter sidebar category buttons - apply immediately
     document.querySelectorAll('.filter-cat-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-cat-btn').forEach(b => b.classList.remove('active'));
@@ -411,16 +411,22 @@ function initializeEventListeners() {
             
             // Update size filter visibility
             updateFilterSizeVisibility(category);
+            
+            // Apply filter immediately
+            loadProducts(currentCategory, currentSize);
         });
     });
     
-    // Filter sidebar size buttons
+    // Filter sidebar size buttons - apply immediately
     document.querySelectorAll('.filter-size-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const group = e.target.closest('.filter-section');
             group.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             currentSize = e.target.dataset.size;
+            
+            // Apply filter immediately
+            loadProducts(currentCategory, currentSize);
         });
     });
     
