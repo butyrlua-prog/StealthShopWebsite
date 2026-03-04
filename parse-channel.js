@@ -315,61 +315,64 @@ async function parseProduct(text, message, id, client) {
     let sizes = ['One Size'];
     if (sizeMatch) {
         let sizeText = sizeMatch[1].trim();
+        console.log(`  📏 Найден размер: "${sizeText}"`);
         
         // ВАЖНО: Заменяем запятую на точку для размеров типа 42,5 → 42.5
         sizeText = sizeText.replace(/(\d),(\d)/g, '$1.$2');
         
-        // Убираем префиксы размеров: EUR:, US:, UK:, EU:, RU: и т.д.
-        sizeText = sizeText.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
-        
-        // Специальная обработка "One Size" / "One-Size" / "OS"
-        if (sizeText.match(/^(one[\s-]?size|os)$/i)) {
-            sizes = ['One Size'];
-        }
-        // Обрабатываем формат "L (EU 48)" или "XL (EU 56)" - извлекаем оба размера
-        else if (sizeText.match(/^([A-Z0-9.]+)\s*\((?:EU|EUR)\s*(\d+)\)/i)) {
-            const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\((?:EU|EUR)\s*(\d+)\)/i);
-            // Берём оба размера: буквенный и EU
-            sizes = [euMatch[1].toUpperCase(), euMatch[2]];
-        }
-        // Диапазон типа "40-44" или "40.5-43.5"
-        else if (sizeText.match(/^\d+\.?\d*\s*-\s*\d+\.?\d*$/)) {
-            const [start, end] = sizeText.split('-').map(s => parseFloat(s.trim()));
-            sizes = [];
-            // Для обуви учитываем полуразмеры
-            if (start >= 35 && end <= 50) {
-                for (let i = start; i <= end; i += 0.5) {
-                    sizes.push(i.toString());
-                }
-            } else {
-                for (let i = start; i <= end; i++) {
-                    sizes.push(i.toString());
-                }
-            }
-        }
-        // Буквенные размеры или одиночные числа (включая 42.5)
-        else if (sizeText.match(/^[A-Z0-9.]+$/i)) {
-            sizes = [sizeText.toUpperCase()];
-        }
-        // Несколько размеров через запятую "S, M, L" или "39, 40, 41" или "42.5, 43, 43.5"
-        else if (sizeText.includes(',') || sizeText.includes('/')) {
-            sizes = sizeText.split(/[,\/]/)
-                .map(s => {
-                    s = s.trim();
-                    // Убираем префиксы из каждого размера
-                    s = s.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
-                    // Заменяем запятую на точку в каждом размере
-                    s = s.replace(/(\d),(\d)/g, '$1.$2');
-                    return s.toUpperCase();
-                })
-                .filter(s => s && s.length > 0);
+        // ВАЖНО: Проверяем формат "XL (EU 56)" ДО удаления префиксов!
+        const euFormatMatch = sizeText.match(/([A-Z0-9.]+)\s*\((?:EU|EUR)\s*(\d+)\)/i);
+        if (euFormatMatch) {
+            // Нашли формат "XL (EU 56)" - сохраняем оба размера
+            sizes = [euFormatMatch[1].trim().toUpperCase(), euFormatMatch[2]];
+            console.log(`  ✅ EU формат: "${euFormatMatch[1]}" (EU ${euFormatMatch[2]}) → sizes: [${sizes.join(', ')}]`);
         }
         else {
-            // Последняя попытка - просто очищаем и сохраняем
+            // Убираем префиксы размеров только если это НЕ формат с EU в скобках
+            sizeText = sizeText.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
             sizeText = sizeText.trim();
-            if (sizeText.length > 0 && sizeText.length < 10) {
-                sizes = [sizeText];
+            
+            // Специальная обработка "One Size" / "One-Size" / "OS"
+            if (sizeText.match(/^(one[\s-]?size|os)$/i)) {
+                sizes = ['One Size'];
             }
+            // Диапазон типа "40-44" или "40.5-43.5"
+            else if (sizeText.match(/^\d+\.?\d*\s*-\s*\d+\.?\d*$/)) {
+                const [start, end] = sizeText.split('-').map(s => parseFloat(s.trim()));
+                sizes = [];
+                // Для обуви учитываем полуразмеры
+                if (start >= 35 && end <= 50) {
+                    for (let i = start; i <= end; i += 0.5) {
+                        sizes.push(i.toString());
+                    }
+                } else {
+                    for (let i = start; i <= end; i++) {
+                        sizes.push(i.toString());
+                    }
+                }
+            }
+            // Буквенные размеры или одиночные числа (включая 42.5)
+            else if (sizeText.match(/^[A-Z0-9.]+$/i)) {
+                sizes = [sizeText.toUpperCase()];
+            }
+            // Несколько размеров через запятую "S, M, L" или "39, 40, 41" или "42.5, 43, 43.5"
+            else if (sizeText.includes(',') || sizeText.includes('/')) {
+                sizes = sizeText.split(/[,\/]/)
+                    .map(s => {
+                        s = s.trim();
+                        // Заменяем запятую на точку в каждом размере
+                        s = s.replace(/(\d),(\d)/g, '$1.$2');
+                        return s.trim().toUpperCase();
+                    })
+                    .filter(s => s && s.length > 0);
+            }
+            else {
+                // Последняя попытка - просто очищаем и сохраняем
+                if (sizeText.length > 0 && sizeText.length < 10) {
+                    sizes = [sizeText.toUpperCase()];
+                }
+            }
+            console.log(`  ✅ Обычный формат: sizes: [${sizes.join(', ')}]`);
         }
     }
     
