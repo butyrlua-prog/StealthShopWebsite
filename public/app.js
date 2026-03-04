@@ -237,34 +237,6 @@ function updateFilterSizeVisibility(category) {
 
 // Initialize event listeners
 function initializeEventListeners() {
-    // Open/Close Filter Sidebar
-    const openFiltersBtn = document.getElementById('openFiltersBtn');
-    const closeFiltersBtn = document.getElementById('closeFiltersBtn');
-    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
-    const filterSidebar = document.getElementById('filterSidebar');
-    const filterOverlay = document.getElementById('filterOverlay');
-    
-    function openFilters() {
-        filterSidebar.classList.add('active');
-        filterOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeFilters() {
-        filterSidebar.classList.remove('active');
-        filterOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    
-    openFiltersBtn.addEventListener('click', openFilters);
-    closeFiltersBtn.addEventListener('click', closeFilters);
-    filterOverlay.addEventListener('click', closeFilters);
-    
-    applyFiltersBtn.addEventListener('click', () => {
-        loadProducts(currentCategory, currentSize);
-        closeFilters();
-    });
-    
     // Category filters
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -277,23 +249,22 @@ function initializeEventListeners() {
             
             // Reset size filter to "all"
             currentSize = 'all';
-            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.size-btn[data-size="all"]').forEach(b => b.classList.add('active'));
+            document.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.size-filter-btn[data-size="all"]').forEach(b => b.classList.add('active'));
             
             loadProducts(category, currentSize);
         });
     });
     
     // Size filters
-    document.querySelectorAll('.size-btn').forEach(btn => {
+    document.querySelectorAll('.size-filter-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             // Remove active from the same group
-            const group = e.target.closest('.filter-section');
-            group.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            const group = e.target.closest('.size-filter-group');
+            group.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             const size = e.target.dataset.size;
-            currentSize = size;
-            // Don't reload immediately, wait for Apply button
+            loadProducts(currentCategory, size);
         });
     });
     
@@ -333,6 +304,25 @@ function initializeEventListeners() {
         });
     }
     
+    // Filter Sidebar Controls
+    const filterToggle = document.getElementById('filterToggle');
+    const filterSidebar = document.getElementById('filterSidebar');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const filterApply = document.getElementById('filterApply');
+    const filterReset = document.getElementById('filterReset');
+    
+    // Open sidebar
+    if (filterToggle) {
+        filterToggle.addEventListener('click', () => {
+            filterSidebar.classList.add('active');
+            filterOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    // Close sidebar function
+    function closeFilterSidebar() {
         filterSidebar.classList.remove('active');
         filterOverlay.classList.remove('active');
         document.body.style.overflow = '';
