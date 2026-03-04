@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Diagnostic</title>
+    <link rel="stylesheet" href="styles.css?v=2">
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+        }
+        .test-grid {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px solid #0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS DIAGNOSTIC TEST</h1>
+    
+    <div id="info">
+        <p>Screen Width: <span id="width"></span>px</p>
+        <p>Products Grid Columns: <span id="columns"></span></p>
+        <p>Products Grid Gap: <span id="gap"></span></p>
+    </div>
+    
+    <h2>Test Grid (should be 2 columns on mobile):</h2>
+    <div class="test-grid products-grid">
+        <div style="background: red; height: 100px;">1</div>
+        <div style="background: blue; height: 100px;">2</div>
+        <div style="background: green; height: 100px;">3</div>
+        <div style="background: yellow; height: 100px;">4</div>
+    </div>
+    
+    <script>
+        function updateInfo() {
+            const width = window.innerWidth;
+            const grid = document.querySelector('.products-grid');
+            const styles = window.getComputedStyle(grid);
+            
+            document.getElementById('width').textContent = width;
+            document.getElementById('columns').textContent = styles.gridTemplateColumns;
+            document.getElementById('gap').textContent = styles.gap;
+        }
+        
+        updateInfo();
+        window.addEventListener('resize', updateInfo);
+    </script>
+</body>
+</html>
