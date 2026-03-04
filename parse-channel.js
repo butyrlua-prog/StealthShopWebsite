@@ -316,6 +316,9 @@ async function parseProduct(text, message, id, client) {
     if (sizeMatch) {
         let sizeText = sizeMatch[1].trim();
         
+        // ВАЖНО: Заменяем запятую на точку для размеров типа 42,5 → 42.5
+        sizeText = sizeText.replace(/(\d),(\d)/g, '$1.$2');
+        
         // Убираем префиксы размеров: EUR:, US:, UK:, EU:, RU: и т.д.
         sizeText = sizeText.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
         
@@ -323,13 +326,13 @@ async function parseProduct(text, message, id, client) {
         if (sizeText.match(/^(one[\s-]?size|os)$/i)) {
             sizes = ['One Size'];
         }
-        // Обрабатываем формат "L (EU 48)" - извлекаем оба размера
-        else if (sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i)) {
-            const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\(EU\s*(\d+)\)/i);
+        // Обрабатываем формат "L (EU 48)" или "XL (EU 56)" - извлекаем оба размера
+        else if (sizeText.match(/^([A-Z0-9.]+)\s*\((?:EU|EUR)\s*(\d+)\)/i)) {
+            const euMatch = sizeText.match(/^([A-Z0-9.]+)\s*\((?:EU|EUR)\s*(\d+)\)/i);
             // Берём оба размера: буквенный и EU
             sizes = [euMatch[1].toUpperCase(), euMatch[2]];
         }
-        // Диапазон типа "40-44"
+        // Диапазон типа "40-44" или "40.5-43.5"
         else if (sizeText.match(/^\d+\.?\d*\s*-\s*\d+\.?\d*$/)) {
             const [start, end] = sizeText.split('-').map(s => parseFloat(s.trim()));
             sizes = [];
@@ -344,17 +347,19 @@ async function parseProduct(text, message, id, client) {
                 }
             }
         }
-        // Буквенные размеры или одиночные числа
+        // Буквенные размеры или одиночные числа (включая 42.5)
         else if (sizeText.match(/^[A-Z0-9.]+$/i)) {
             sizes = [sizeText.toUpperCase()];
         }
-        // Несколько размеров через запятую "S, M, L" или "39, 40, 41"
+        // Несколько размеров через запятую "S, M, L" или "39, 40, 41" или "42.5, 43, 43.5"
         else if (sizeText.includes(',') || sizeText.includes('/')) {
             sizes = sizeText.split(/[,\/]/)
                 .map(s => {
                     s = s.trim();
                     // Убираем префиксы из каждого размера
                     s = s.replace(/\b(EUR|US|UK|EU|RU|IT|FR|JP|CN|SIZE)\s*:?\s*/gi, '');
+                    // Заменяем запятую на точку в каждом размере
+                    s = s.replace(/(\d),(\d)/g, '$1.$2');
                     return s.toUpperCase();
                 })
                 .filter(s => s && s.length > 0);
