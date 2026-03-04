@@ -211,41 +211,6 @@ body {
 }
 
 /* Filter Header */
-.filter-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.open-filters-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.open-filters-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.6);
-}
-
-.open-filters-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
 /* Results Counter */
 .results-counter {
     font-size: 14px;
@@ -1305,7 +1270,7 @@ body {
     }
     
     .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
     }
 }
@@ -1319,8 +1284,76 @@ body {
         gap: 15px;
     }
     
+    /* Мобильная сетка 2x2 - 4 товара на экране */
     .products-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 10px;
+        padding: 10px 0;
+    }
+    
+    /* Компактные карточки товаров */
+    .product-card {
+        margin-bottom: 0;
+    }
+    
+    /* КВАДРАТНЫЕ изображения для мобильных */
+    .product-image {
+        aspect-ratio: 1/1; /* Квадрат! */
+        margin-bottom: 8px;
+    }
+    
+    /* Компактная информация о товаре */
+    .product-info {
+        padding: 0 5px;
+    }
+    
+    .product-brand {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+    
+    .product-name {
+        font-size: 12px;
+        line-height: 1.3;
+        margin-bottom: 4px;
+        /* Обрезаем длинные названия */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .product-price {
+        font-size: 13px;
+        font-weight: 600;
+    }
+    
+    .product-size {
+        font-size: 9px;
+        margin-top: 2px;
+    }
+    
+    /* Меньше badges для экономии места */
+    .status-badge {
+        font-size: 8px;
+        padding: 4px 8px;
+        top: 5px;
+        right: 5px;
+    }
+}
+
+/* Для очень маленьких экранов (iPhone SE) */
+@media (max-width: 375px) {
+    .products-grid {
+        gap: 8px;
+    }
+    
+    .product-name {
+        font-size: 11px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .product-price {
+        font-size: 12px;
     }
 }
