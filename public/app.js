@@ -243,16 +243,25 @@ function initializeEventListeners() {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             const category = e.target.dataset.category;
+            currentCategory = category;
+            
+            // Update sidebar category buttons too
+            document.querySelectorAll('.filter-cat-btn').forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.category === category) {
+                    b.classList.add('active');
+                }
+            });
             
             // Show/hide appropriate size filters based on category
-            updateSizeFilters(category);
+            updateFilterSizeVisibility(category);
             
             // Reset size filter to "all"
             currentSize = 'all';
-            document.querySelectorAll('.size-filter-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.size-filter-btn[data-size="all"]').forEach(b => b.classList.add('active'));
+            document.querySelectorAll('.filter-size-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.filter-size-btn[data-size="all"]').forEach(b => b.classList.add('active'));
             
-            loadProducts(category, currentSize);
+            loadProducts(currentCategory, currentSize);
         });
     });
     
