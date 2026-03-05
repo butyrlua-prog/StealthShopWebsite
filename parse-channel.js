@@ -444,7 +444,7 @@ async function parseProduct(text, message, id, client) {
         
         if (firstLine.match(regex)) {
             brand = b;
-            name = firstLine.replace(regex, '').trim();
+            name = firstLine.trim(); // Оставляем полное название с брендом!
             break;
         }
     }
